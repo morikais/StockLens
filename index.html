@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#070c1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>내 배당 포트폴리오</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070c1a;--sur:#0e1628;--sur2:#141e35;--bdr:#1e2d4a;
+  --ac:#00d4ff;--ac2:#7c3aed;--gr:#10b981;--ye:#f59e0b;--re:#ef4444;
+  --tx:#e2e8f0;--mu:#64748b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden;padding-bottom:90px;}
+body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(ellipse at 20% 20%,rgba(0,212,255,.05) 0%,transparent 50%),
+             radial-gradient(ellipse at 80% 80%,rgba(124,58,237,.05) 0%,transparent 50%);
+  pointer-events:none;z-index:0;}
+.w{max-width:480px;margin:0 auto;padding:0 14px;position:relative;z-index:1;}
+
+header{padding:20px 0 12px;text-align:center;border-bottom:1px solid var(--bdr);margin-bottom:14px;}
+header h1{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+header p{font-size:.65rem;color:var(--mu);margin-top:3px;letter-spacing:1px;}
+
+.tabs{display:flex;background:var(--sur);border-radius:12px;padding:4px;margin-bottom:14px;border:1px solid var(--bdr);}
+.tab{flex:1;padding:9px 2px;text-align:center;font-size:.7rem;font-weight:500;border-radius:9px;cursor:pointer;transition:all .2s;color:var(--mu);}
+.tab.on{background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(124,58,237,.15));color:var(--ac);border:1px solid rgba(0,212,255,.2);}
+.tc{display:none;}.tc.on{display:block;}
+
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:15px;margin-bottom:11px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac),var(--ac2));opacity:0;transition:opacity .3s;}
+.card:focus-within::before{opacity:1;}
+.ct{font-size:.66rem;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:6px;}
+.ct::after{content:'';flex:1;height:1px;background:var(--bdr);}
+
+input[type=number],input[type=text]{background:var(--bg);border:1px solid var(--bdr);border-radius:9px;
+  padding:9px 11px;color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:.86rem;width:100%;-webkit-appearance:none;transition:border-color .2s;}
+input:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+.ig{display:flex;flex-direction:column;gap:4px;}
+.ig label{font-size:.66rem;color:var(--mu);font-weight:500;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+
+/* 업데이트 카드 */
+.pu-card{background:linear-gradient(135deg,rgba(0,212,255,.05),rgba(124,58,237,.05));
+  border:1px solid rgba(0,212,255,.18);border-radius:14px;padding:14px;margin-bottom:11px;}
+.pu-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.pu-title{font-size:.68rem;color:var(--ac);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;}
+.pu-time{font-size:.6rem;color:var(--mu);}
+
+.btn-fetch{width:100%;padding:12px 16px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;font-weight:700;font-size:.82rem;
+  cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s,transform .15s;}
+.btn-fetch:active{transform:scale(.98);}
+.btn-fetch:disabled{opacity:.45;cursor:not-allowed;}
+
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0;}
+.spinner.on{display:block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* 칩 */
+.chips{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap;}
+.chip{font-size:.6rem;padding:3px 8px;border-radius:20px;border:1px solid var(--bdr);color:var(--mu);background:var(--sur2);}
+.chip.active{border-color:var(--ac);color:var(--ac);background:rgba(0,212,255,.08);}
+.chip.done{border-color:var(--gr);color:var(--gr);background:rgba(16,185,129,.08);}
+.chip.partial{border-color:var(--ye);color:var(--ye);background:rgba(245,158,11,.08);}
+.chip.fail{border-color:var(--re);color:var(--re);background:rgba(239,68,68,.08);}
+
+/* 상태바 */
+.sbar{font-size:.7rem;padding:8px 11px;border-radius:9px;margin-top:8px;line-height:1.6;}
+.s-load{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);color:var(--ac);}
+.s-ok{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);color:var(--gr);}
+.s-warn{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);color:var(--ye);}
+.s-err{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);color:var(--re);}
+
+/* 로그 테이블 */
+.log-table{margin-top:10px;width:100%;}
+.log-head{display:grid;grid-template-columns:1fr 80px 80px;gap:4px;
+  font-size:.58rem;color:var(--mu);padding:4px 0;border-bottom:1px solid var(--bdr);letter-spacing:.5px;}
+.log-row{display:grid;grid-template-columns:1fr 80px 80px;gap:4px;
+  padding:6px 0;border-bottom:1px solid var(--bdr);font-size:.68rem;align-items:center;}
+.log-row:last-child{border-bottom:none;}
+.log-name{font-weight:500;}
+.log-cell{text-align:right;font-family:'JetBrains Mono',monospace;}
+.c-up{color:#ff6b6b;}.c-dn{color:#4ade80;}.c-nc{color:var(--mu);}
+.tag{font-size:.55rem;padding:1px 5px;border-radius:4px;display:inline-block;margin-left:3px;}
+.tag-ok{background:rgba(16,185,129,.15);color:var(--gr);}
+.tag-skip{background:rgba(100,116,139,.15);color:var(--mu);}
+.tag-fail{background:rgba(239,68,68,.15);color:var(--re);}
+
+/* 히어로 */
+.goal-hero{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));
+  border:1px solid rgba(0,212,255,.2);border-radius:16px;padding:18px;margin-bottom:11px;text-align:center;}
+.gh-val{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gh-sub{font-size:.68rem;color:var(--mu);margin-top:4px;}
+
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px;}
+.si{background:var(--sur2);border:1px solid var(--bdr);border-radius:11px;padding:11px 9px;text-align:center;}
+.si .lb{font-size:.6rem;color:var(--mu);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+.si .vl{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--ac);}
+.vl.gr{color:var(--gr);}.vl.ye{color:var(--ye);}.vl.pu{color:#a78bfa;}
+
+.pb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.pb-lbl{font-size:.68rem;color:var(--mu);}
+.pb-pct{font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;}
+.pb{height:10px;background:var(--sur2);border-radius:99px;overflow:hidden;border:1px solid var(--bdr);}
+.pf{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--ac),var(--ac2));}
+
+.sc{background:var(--sur);border:1px solid var(--bdr);border-radius:13px;padding:13px;margin-bottom:9px;transition:border-color .2s;}
+.sc:hover{border-color:rgba(0,212,255,.22);}
+.sc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px;}
+.sc-name{font-weight:700;font-size:.88rem;}
+.sc-tk{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--ac);background:rgba(0,212,255,.08);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:2px;}
+.sc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;}
+.st{background:var(--bg);border-radius:7px;padding:7px 4px;text-align:center;}
+.st .sl{font-size:.56rem;color:var(--mu);display:block;margin-bottom:2px;}
+.st .sv{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;}
+.tg-info{display:flex;justify-content:space-between;font-size:.62rem;color:var(--mu);margin-bottom:3px;}
+.mb{height:7px;background:var(--sur2);border-radius:99px;overflow:hidden;}
+.mf{height:100%;border-radius:99px;transition:width .5s;}
+.mf-g{background:var(--gr);}.mf-y{background:var(--ye);}.mf-b{background:var(--ac);}.mf-pu{background:linear-gradient(90deg,var(--ac2),#a78bfa);}
+
+.rb-box{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:11px;}
+.rb-hdr{padding:11px 14px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));
+  border-bottom:1px solid var(--bdr);font-size:.66rem;color:var(--ac);letter-spacing:1px;text-transform:uppercase;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.rb-row{padding:12px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:9px;}
+.rb-row:last-child{border-bottom:none;}
+.rb-rank{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;width:24px;flex-shrink:0;color:var(--bdr);}
+.rr1{color:var(--ac);}.rr2{color:var(--gr);}.rr3{color:var(--ye);}
+.rb-info{flex:1;}.rb-nm{font-weight:700;font-size:.83rem;margin-bottom:2px;}
+.rb-sb{font-size:.62rem;color:var(--mu);line-height:1.5;}
+.rb-right{text-align:right;flex-shrink:0;}
+.rb-cnt{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--ac);}
+.rb-cost{font-size:.62rem;color:var(--mu);margin-top:2px;}
+.rb-gain{font-size:.64rem;color:var(--gr);font-weight:600;margin-top:2px;}
+
+.hl{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(124,58,237,.08));
+  border:1px solid rgba(0,212,255,.25);border-radius:13px;padding:14px;margin-bottom:11px;}
+.hl-t{font-size:.62rem;color:var(--ac);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:7px;}
+.hl-m{font-size:1rem;font-weight:700;line-height:1.5;margin-bottom:6px;}
+.hl-s{font-size:.7rem;color:var(--mu);line-height:1.7;}
+.ha{color:var(--ac);}.hg{color:var(--gr);}.hy{color:var(--ye);}.hp{color:#a78bfa;}
+
+.tc-card{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(124,58,237,.04));
+  border:1px solid rgba(0,212,255,.15);border-radius:13px;padding:13px;margin-bottom:11px;}
+.tc-hdr{font-size:.66rem;color:var(--ac);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:700;}
+.tc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr);}
+.tc-row:last-child{border-bottom:none;}
+.tc-nm{font-size:.8rem;font-weight:600;}.tc-sb{font-size:.61rem;color:var(--mu);margin-top:1px;line-height:1.4;}
+
+.alert-box{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);
+  border-radius:10px;padding:10px 12px;margin-bottom:11px;font-size:.68rem;color:var(--ye);line-height:1.6;}
+.btn-p{width:100%;padding:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));
+  border:none;border-radius:11px;color:white;font-weight:700;font-size:.8rem;
+  cursor:pointer;transition:opacity .2s,transform .15s;font-family:'Noto Sans KR',sans-serif;}
+.btn-p:active{opacity:.85;transform:scale(.98);}
+.btn-s{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:7px;
+  color:var(--ac);font-size:.65rem;padding:4px 8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.btn-d{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;
+  color:var(--re);font-size:.65rem;padding:4px 8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.btn-auto{background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);border-radius:8px;
+  color:#a78bfa;font-size:.72rem;padding:7px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600;width:100%;margin-top:8px;}
+
+.dv{font-size:.6rem;color:var(--mu);letter-spacing:2px;text-transform:uppercase;
+  margin:14px 0 8px;display:flex;align-items:center;gap:7px;}
+.dv::before,.dv::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.bud-row{display:flex;align-items:center;gap:8px;}
+.bud-row input{flex:1;}
+.bud-won{font-size:.73rem;color:var(--mu);white-space:nowrap;}
+.empty{text-align:center;padding:32px 16px;color:var(--mu);}
+.empty-ic{font-size:2rem;margin-bottom:9px;}
+.empty-tx{font-size:.78rem;line-height:1.7;}
+.sim-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bdr);}
+.sim-row:last-child{border-bottom:none;}
+.sim-lbl{font-size:.78rem;font-weight:600;}.sim-sub{font-size:.61rem;color:var(--mu);margin-top:1px;}
+.sim-val{font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;}
+.auto-target{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);border-radius:10px;
+  padding:10px 12px;margin-top:7px;font-size:.68rem;color:#a78bfa;line-height:1.6;}
+
+@keyframes fu{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.an{animation:fu .3s ease forwards;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.pulse{animation:pulse 1.4s ease infinite;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="w">
+<header>
+  <h1>내 배당 포트폴리오</h1>
+  <p>월 100만원 배당 목표 · 주가 + 배당금 자동 최신화</p>
+</header>
+
+<div class="tabs">
+  <div class="tab on"  onclick="ST('dash',this)">현황</div>
+  <div class="tab"     onclick="ST('stocks',this)">종목 관리</div>
+  <div class="tab"     onclick="ST('rec',this)">투자 추천</div>
+  <div class="tab"     onclick="ST('rebal',this)">리밸런싱</div>
+</div>
+
+<!-- ══ 현황 ══ -->
+<div id="tab-dash" class="tc on">
+
+  <div class="pu-card">
+    <div class="pu-top">
+      <span class="pu-title">📡 주가 · 배당금 자동 최신화</span>
+      <span class="pu-time" id="lastUpd">미업데이트</span>
+    </div>
+    <button class="btn-fetch" id="fetchBtn" onclick="fetchAll()">
+      <div class="spinner" id="spinner"></div>
+      <span id="fetchTxt">주가 + 배당금 가져오기</span>
+    </button>
+    <div id="chipWrap" class="chips" style="display:none"></div>
+    <div id="fetchStatus"></div>
+    <div id="fetchLog"></div>
+  </div>
+
+  <div class="card">
+    <div class="ct">🎯 월 배당금 목표</div>
+    <div class="g2">
+      <div class="ig"><label>월 목표 (원)</label><input type="number" id="gM" value="1000000" oninput="onGM()"></div>
+      <div class="ig"><label>연 목표 (원)</label><input type="number" id="gY" value="12000000" oninput="onGY()"></div>
+    </div>
+  </div>
+
+  <div class="goal-hero">
+    <div style="font-size:.65rem;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">현재 월 배당 수입</div>
+    <div class="gh-val" id="heroVal">₩0</div>
+    <div class="gh-sub" id="heroSub">목표 ₩1,000,000 · 달성률 0%</div>
+  </div>
+
+  <div class="sg">
+    <div class="si"><div class="lb">현재 연 배당</div><div class="vl gr" id="cY">₩0</div></div>
+    <div class="si"><div class="lb">부족 월 배당</div><div class="vl ye" id="sfl">-</div></div>
+    <div class="si"><div class="lb">총 투자원금</div><div class="vl pu" id="totCost">₩0</div></div>
+    <div class="si"><div class="lb">평균 수익률</div><div class="vl" id="avgYield">0%</div></div>
+  </div>
+
+  <div class="card">
+    <div class="pb-head">
+      <span class="pb-lbl">월 배당 목표 달성률</span>
+      <span class="pb-pct" id="ppBar" style="color:var(--ac)">0%</span>
+    </div>
+    <div class="pb"><div class="pf" id="pgFill" style="width:0%"></div></div>
+  </div>
+
+  <div id="dashList"></div>
+</div>
+
+<!-- ══ 종목 관리 ══ -->
+<div id="tab-stocks" class="tc">
+  <div class="card">
+    <div class="ct">🤖 목표 수량 자동 계산</div>
+    <div style="font-size:.73rem;color:var(--mu);line-height:1.6;margin-bottom:10px;">
+      월 <b style="color:var(--ac)" id="autoGoalLabel">100만원</b> 목표 기준으로 자동 계산합니다
+    </div>
+    <div class="g2">
+      <button class="btn-auto" onclick="autoTarget('equal')">⚖️ 균등 배분</button>
+      <button class="btn-auto" onclick="autoTarget('yield')">📈 수익률 가중</button>
+    </div>
+    <div style="font-size:.62rem;color:var(--mu);margin-top:8px;">※ 적용 후 개별 조정 가능</div>
+  </div>
+  <div id="editList"></div>
+  <div class="dv">종목 추가</div>
+  <div class="card">
+    <div class="ct">➕ 새 종목 추가</div>
+    <div class="g2" style="margin-bottom:9px;">
+      <div class="ig"><label>종목명 *</label><input type="text" id="fNm" placeholder="종목명"></div>
+      <div class="ig"><label>티커 *</label><input type="text" id="fTk" placeholder="005930"></div>
+      <div class="ig"><label>주가 (원)</label><input type="number" id="fPr" placeholder="자동조회 가능"></div>
+      <div class="ig"><label>보유 수량</label><input type="number" id="fQt" placeholder="0"></div>
+      <div class="ig"><label>주당 연배당금</label><input type="number" id="fDv" placeholder="자동조회 가능"></div>
+      <div class="ig"><label>목표 수량</label><input type="number" id="fTg" placeholder="자동계산 가능"></div>
+    </div>
+    <button class="btn-p" onclick="addStock()">추가</button>
+  </div>
+</div>
+
+<!-- ══ 투자 추천 ══ -->
+<div id="tab-rec" class="tc">
+  <div class="card">
+    <div class="ct">💰 이번 달 투자 가능 금액</div>
+    <div class="bud-row">
+      <input type="number" id="bud" placeholder="700000" oninput="saveBud();calcRec()">
+      <span class="bud-won">원</span>
+    </div>
+    <div style="margin-top:7px;font-size:.63rem;color:var(--mu);">💡 8월까지 70~80만원 / 이후 100만원</div>
+  </div>
+  <div id="recOut"></div>
+</div>
+
+<!-- ══ 리밸런싱 ══ -->
+<div id="tab-rebal" class="tc">
+  <div id="rebalOut"></div>
+</div>
+
+</div>
+<script>
+/* ══ 데이터 ══ */
+const DEFAULT=[
+  {id:1,name:'미국배당다우존스',ticker:'489250',price:11200,qty:190,divAmt:268, target:0,type:'dividend'},
+  {id:2,name:'삼성전자',        ticker:'005930',price:56000,qty:2,  divAmt:2264,target:0,type:'dividend'},
+  {id:3,name:'현대차2우B',      ticker:'005387',price:64000,qty:1,  divAmt:2500,target:0,type:'dividend'},
+  {id:4,name:'KB금융',          ticker:'105560',price:90000,qty:2,  divAmt:3360,target:0,type:'dividend'},
+  {id:5,name:'신한지주',        ticker:'055550',price:57000,qty:1,  divAmt:2160,target:0,type:'dividend'},
+  {id:6,name:'맥쿼리인프라',    ticker:'088980',price:11000,qty:3,  divAmt:760, target:0,type:'dividend'},
+];
+let stocks=[], goals={monthly:1000000,yearly:12000000}, budget=0;
+
+function save(){localStorage.setItem('dv7_s',JSON.stringify(stocks));}
+function load(){
+  try{
+    const s=localStorage.getItem('dv7_s'),g=localStorage.getItem('dv7_g'),b=localStorage.getItem('dv7_b');
+    stocks=s?JSON.parse(s):JSON.parse(JSON.stringify(DEFAULT));
+    if(g) goals=JSON.parse(g);
+    document.getElementById('gM').value=goals.monthly;
+    document.getElementById('gY').value=goals.yearly;
+    if(b){budget=+b;document.getElementById('bud').value=budget||'';}
+  }catch(e){stocks=JSON.parse(JSON.stringify(DEFAULT));}
+}
+function saveG(){localStorage.setItem('dv7_g',JSON.stringify(goals));}
+function saveBud(){budget=+document.getElementById('bud').value||0;localStorage.setItem('dv7_b',budget);}
+function ST(id,el){
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on'); el.classList.add('on');
+  if(id==='dash')   updDash();
+  if(id==='stocks') rendEdit();
+  if(id==='rec')    calcRec();
+  if(id==='rebal')  calcRebal();
+}
+function onGM(){goals.monthly=+document.getElementById('gM').value||0;goals.yearly=goals.monthly*12;document.getElementById('gY').value=goals.yearly||'';saveG();updDash();}
+function onGY(){goals.yearly=+document.getElementById('gY').value||0;goals.monthly=Math.round(goals.yearly/12);document.getElementById('gM').value=goals.monthly||'';saveG();updDash();}
+function f(n){n=Math.round(n);if(n>=100000000)return(n/100000000).toFixed(1)+'억';if(n>=10000)return Math.round(n/10000)+'만';return n.toLocaleString();}
+function fw(n){return'₩'+f(n);}
+function ff(n){return Math.round(n).toLocaleString()+'원';}
+function pct(a,b){return b>0?Math.min(a/b*100,100):0;}
+
+/* ══════════════════════════════════════
+   📡 주가 + 배당금 동시 조회
+   네이버 금융 멀티 프록시
+══════════════════════════════════════ */
+
+// CORS 프록시 목록
+const PROXIES=[
+  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  u=>`https://thingproxy.freeboard.io/fetch/${u}`,
+];
+
+async function proxyFetch(targetUrl){
+  for(const makeUrl of PROXIES){
+    try{
+      const res=await fetch(makeUrl(targetUrl),{
+        signal:AbortSignal.timeout(8000),
+        headers:{'Accept':'application/json,text/html,*/*'}
+      });
+      if(!res.ok) continue;
+      const ct=res.headers.get('content-type')||'';
+      if(ct.includes('json')){
+        const j=await res.json();
+        return j.contents||j.body||j.data||'';
+      }
+      return await res.text();
+    }catch(e){}
+  }
+  return null;
+}
+
+// 네이버 금융 main 페이지에서 주가 파싱
+function parsePrice(html){
+  const patterns=[
+    /id="_nowVal"[^>]*>\s*([\d,]+)/,
+    /class="no_today"[\s\S]{0,300}?<em[\s\S]{0,200}?<span[^>]*>([\d,]+)</,
+    /"stck_prpr"\s*:\s*"(\d+)"/,
+    /nowVal">([\d,]+)</,
+    /<dd class="no">([\d,]+)<\/dd>/,
+  ];
+  for(const re of patterns){
+    const m=html.match(re);
+    if(m){const p=parseInt(m[1].replace(/,/g,''),10);if(p>100&&p<100000000)return p;}
+  }
+  return null;
+}
+
+// 네이버 금융 투자정보 페이지에서 주당 연배당금 파싱
+// URL: https://finance.naver.com/item/coinfo.naver?code=TICKER
+function parseDividend(html){
+  const patterns=[
+    // 주당배당금 패턴들
+    /주당배당금[^<]*<\/th>\s*<td[^>]*>([\d,]+)/,
+    /배당금\(원\)[^<]*<\/th>\s*<td[^>]*>([\d,]+)/,
+    /DPS[^<]*<\/th>\s*<td[^>]*>([\d,]+)/,
+    /"dvid_per_shar"\s*:\s*"([\d,]+)"/,
+    /주당배당금.*?(\d[\d,]+)\s*원/,
+    // 배당수익률에서 역산 (주가 × 수익률)
+  ];
+  for(const re of patterns){
+    const m=html.match(re);
+    if(m){
+      const d=parseInt(m[1].replace(/,/g,''),10);
+      if(d>0&&d<500000)return d;
+    }
+  }
+  return null;
+}
+
+// 단일 종목 조회: 주가 + 배당금
+async function fetchOne(s){
+  const result={price:null, div:null};
+
+  // 1. main 페이지 → 주가 파싱
+  const mainUrl=`https://finance.naver.com/item/main.nhn?code=${s.ticker}`;
+  const mainHtml=await proxyFetch(mainUrl);
+  if(mainHtml){
+    result.price=parsePrice(mainHtml);
+    // main 페이지에서 배당금도 시도
+    result.div=parseDividend(mainHtml);
+  }
+
+  // 2. 배당금 못 가져오면 → 투자정보 페이지 시도
+  if(!result.div){
+    await new Promise(r=>setTimeout(r,300));
+    const coinfoUrl=`https://finance.naver.com/item/coinfo.naver?code=${s.ticker}&target=finsum_D`;
+    const coinfoHtml=await proxyFetch(coinfoUrl);
+    if(coinfoHtml) result.div=parseDividend(coinfoHtml);
+  }
+
+  // 3. 그래도 없으면 → 기업정보 페이지 시도
+  if(!result.div){
+    await new Promise(r=>setTimeout(r,300));
+    const bizUrl=`https://finance.naver.com/item/main.nhn?code=${s.ticker}`;
+    // 배당수익률 + 현재가로 역산
+    if(mainHtml&&result.price){
+      const yieldMatch=mainHtml.match(/배당수익률[^>]*>[\s\S]{0,100}?([\d.]+)%/) ||
+                       mainHtml.match(/"dvid_yield"\s*:\s*"([\d.]+)"/) ||
+                       mainHtml.match(/시가배당률[^>]*>[\s\S]{0,50}?([\d.]+)/);
+      if(yieldMatch){
+        const y=parseFloat(yieldMatch[1]);
+        if(y>0&&y<50){
+          result.div=Math.round(result.price*y/100);
+          result.divFromYield=true;
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+// 전체 조회
+async function fetchAll(){
+  const btn=document.getElementById('fetchBtn');
+  const spinner=document.getElementById('spinner');
+  const fetchTxt=document.getElementById('fetchTxt');
+  const statusEl=document.getElementById('fetchStatus');
+  const logEl=document.getElementById('fetchLog');
+  const chipWrap=document.getElementById('chipWrap');
+
+  btn.disabled=true;
+  spinner.classList.add('on');
+  fetchTxt.textContent='조회 중...';
+  statusEl.innerHTML='';
+  logEl.innerHTML='';
+  chipWrap.style.display='flex';
+  chipWrap.innerHTML='';
+
+  const ds=stocks.filter(s=>s.type==='dividend');
+  if(!ds.length){statusEl.innerHTML=`<div class="sbar s-err">종목이 없습니다.</div>`;resetBtn();return;}
+
+  // 칩 초기화
+  ds.forEach(s=>{
+    const c=document.createElement('div');
+    c.className='chip'; c.id=`chip_${s.id}`;
+    c.textContent=s.name.slice(0,4);
+    chipWrap.appendChild(c);
+  });
+
+  statusEl.innerHTML=`<div class="sbar s-load pulse">📡 네이버 금융에서 주가 · 배당금 조회 중...</div>`;
+
+  const results=[];
+  for(const s of ds){
+    const chip=document.getElementById(`chip_${s.id}`);
+    chip.classList.add('active');
+
+    const r=await fetchOne(s);
+
+    const oldPrice=s.price, oldDiv=s.divAmt;
+    let priceOk=false, divOk=false;
+
+    if(r.price&&r.price>0){
+      stocks.find(x=>x.id===s.id).price=r.price;
+      priceOk=true;
+    }
+    if(r.div&&r.div>0){
+      stocks.find(x=>x.id===s.id).divAmt=r.div;
+      divOk=true;
+    }
+
+    results.push({s,oldPrice,newPrice:r.price||oldPrice,oldDiv,newDiv:r.div||oldDiv,
+      priceOk,divOk,divFromYield:r.divFromYield||false});
+
+    // 칩 상태
+    chip.classList.remove('active');
+    if(priceOk&&divOk) chip.classList.add('done');
+    else if(priceOk||divOk) chip.classList.add('partial');
+    else chip.classList.add('fail');
+
+    await new Promise(r=>setTimeout(r,500)); // 프록시 과부하 방지
+  }
+
+  save();
+  updDash();
+  if(document.getElementById('tab-stocks').classList.contains('on')) rendEdit();
+
+  // 결과 집계
+  const priceOkN=results.filter(r=>r.priceOk).length;
+  const divOkN=results.filter(r=>r.divOk).length;
+  const now=new Date();
+  document.getElementById('lastUpd').textContent=
+    `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 업데이트`;
+
+  if(priceOkN===0&&divOkN===0){
+    statusEl.innerHTML=`<div class="sbar s-err">❌ 조회 실패. 네트워크를 확인하거나 잠시 후 재시도해주세요.<br><span style="opacity:.7;font-size:.62rem">'종목 관리'에서 직접 수정도 가능합니다.</span></div>`;
+  }else{
+    statusEl.innerHTML=`<div class="sbar s-ok">
+      ✅ 주가 <b>${priceOkN}/${ds.length}</b>종목 · 배당금 <b>${divOkN}/${ds.length}</b>종목 업데이트
+      ${divOkN<ds.length?`<br><span style="font-size:.62rem;opacity:.8">배당금 미조회 종목은 기존 값 유지 (연 1회 공시 기준)</span>`:''}
+    </div>`;
+  }
+
+  // 로그 테이블
+  let lh=`<div class="log-table">
+    <div class="log-head"><span>종목</span><span style="text-align:right">주가</span><span style="text-align:right">연배당금</span></div>`;
+  results.forEach(r=>{
+    const pd=r.newPrice-r.oldPrice, pp=r.oldPrice>0?((pd/r.oldPrice)*100):0;
+    const dd=r.newDiv-r.oldDiv;
+    const pc=pd>0?'c-up':pd<0?'c-dn':'c-nc';
+    const dc=dd>0?'c-dn':dd<0?'c-up':'c-nc'; // 배당↑ 초록
+    lh+=`<div class="log-row">
+      <span class="log-name">${r.s.name.slice(0,6)}</span>
+      <span class="log-cell ${r.priceOk?pc:'c-nc'}">
+        ${r.priceOk
+          ?`${r.newPrice.toLocaleString()}<span class="tag tag-ok">↑</span>`
+          :`${r.oldPrice.toLocaleString()}<span class="tag tag-skip">유지</span>`}
+      </span>
+      <span class="log-cell ${r.divOk?dc:'c-nc'}">
+        ${r.divOk
+          ?(dd!==0
+            ?`${r.newDiv.toLocaleString()}<span class="tag tag-ok">${dd>0?'+':''}${dd}</span>`
+            :`${r.newDiv.toLocaleString()}<span class="tag tag-ok">확인</span>`)
+          :`${r.oldDiv.toLocaleString()}<span class="tag tag-skip">유지</span>`}
+      </span>
+    </div>`;
+  });
+  lh+=`</div>`;
+  logEl.innerHTML=lh;
+  resetBtn();
+}
+
+function resetBtn(){
+  document.getElementById('fetchBtn').disabled=false;
+  document.getElementById('spinner').classList.remove('on');
+  document.getElementById('fetchTxt').textContent='주가 + 배당금 가져오기';
+}
+
+/* ══ 자동 목표 수량 ══ */
+function autoTarget(mode){
+  const ds=stocks.filter(s=>s.type==='dividend'&&s.divAmt>0);
+  if(!ds.length){alert('배당주가 없습니다.');return;}
+  const mg=goals.monthly||1000000;
+  if(mode==='equal'){
+    const per=mg/ds.length;
+    ds.forEach(s=>{const mps=s.divAmt/12;s.target=mps>0?Math.ceil(per/mps):s.target;});
+  }else{
+    const tYield=ds.reduce((a,s)=>a+s.divAmt/s.price,0);
+    ds.forEach(s=>{const w=(s.divAmt/s.price)/tYield,mG=mg*w,mps=s.divAmt/12;s.target=mps>0?Math.ceil(mG/mps):s.target;});
+  }
+  save();updDash();rendEdit();
+  alert(`✅ 목표 수량 설정!\n\n${ds.map(s=>`${s.name}: ${s.target}주 (${ff(s.target*s.price)})`).join('\n')}`);
+}
+
+/* ══ 대시보드 ══ */
+function updDash(){
+  const ds=stocks.filter(s=>s.type==='dividend');
+  const tY=ds.reduce((a,s)=>a+s.divAmt*s.qty,0),tM=tY/12;
+  const mg=goals.monthly||0,p=pct(tM,mg),sh=Math.max(0,mg-tM);
+  const totCost=ds.reduce((a,s)=>a+s.price*s.qty,0);
+  const avgY=totCost>0?(tY/totCost*100):0;
+  document.getElementById('heroVal').textContent=fw(tM);
+  document.getElementById('heroSub').textContent=`목표 ${ff(mg)} · 달성률 ${p.toFixed(1)}%`;
+  document.getElementById('cY').textContent=fw(tY);
+  document.getElementById('sfl').textContent=sh>0?fw(sh)+'/월':'🎉 달성!';
+  document.getElementById('totCost').textContent=fw(totCost);
+  document.getElementById('avgYield').textContent=avgY.toFixed(2)+'%';
+  document.getElementById('ppBar').textContent=p.toFixed(1)+'%';
+  document.getElementById('pgFill').style.width=p+'%';
+  const al=document.getElementById('autoGoalLabel');
+  if(al) al.textContent=ff(mg);
+  rendDash(ds,tY);
+}
+
+function rendDash(ds,tY){
+  const el=document.getElementById('dashList');
+  if(!ds.length){el.innerHTML=`<div class="empty"><div class="empty-ic">📊</div><div class="empty-tx">'종목 관리'에서 주식을 확인하세요</div></div>`;return;}
+  const sorted=[...ds].sort((a,b)=>{
+    const pa=a.target>0?pct(a.qty,a.target):101,pb=b.target>0?pct(b.qty,b.target):101;return pa-pb;
+  });
+  let h=`<div class="dv">종목별 달성 현황</div>`;
+  sorted.forEach(s=>{
+    const mD=s.divAmt*s.qty/12,yD=s.divAmt*s.qty,con=tY>0?(yD/tY*100).toFixed(1):0;
+    const tp=s.target>0?pct(s.qty,s.target):null,fc=tp===null?'mf-pu':tp>=80?'mf-g':tp>=40?'mf-y':'mf-b';
+    const yr=(s.divAmt/s.price*100).toFixed(2),need=s.target>0?Math.max(0,s.target-s.qty):null;
+    h+=`<div class="sc an">
+      <div class="sc-head">
+        <div><div class="sc-name">${s.name} <span class="sc-tk">${s.ticker}</span></div></div>
+        <div style="text-align:right">
+          ${tp!==null
+            ?`<div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.95rem;color:${tp>=80?'var(--gr)':tp>=40?'var(--ye)':'var(--ac)'};">${tp.toFixed(0)}%</div>
+               <div style="font-size:.6rem;color:var(--mu);">${s.qty}/${s.target}주</div>`
+            :`<div style="font-size:.65rem;color:#a78bfa;">목표 미설정</div>`}
+        </div>
+      </div>
+      <div class="sc-stats">
+        <div class="st"><span class="sl">주가</span><span class="sv">${fw(s.price)}</span></div>
+        <div class="st"><span class="sl">월배당</span><span class="sv">${fw(mD)}</span></div>
+        <div class="st"><span class="sl">수익률</span><span class="sv">${yr}%</span></div>
+      </div>
+      ${s.target>0
+        ?`<div class="tg-info"><span>목표달성 ${tp.toFixed(0)}% (${s.qty}/${s.target}주) · 연배당 ${ff(s.divAmt)}/주</span>
+           <span style="color:${need>0?'var(--ye)':'var(--gr)'};">${need>0?need+'주 남음':'✅'}</span></div>
+           <div class="mb"><div class="mf ${fc}" style="width:${tp}%"></div></div>`
+        :`<div style="font-size:.62rem;color:#a78bfa;margin-top:3px;">연배당 ${ff(s.divAmt)}/주 · 종목 관리에서 목표 수량을 설정하세요</div>`}
+    </div>`;
+  });
+  el.innerHTML=h;
+}
+
+/* ══ 종목 관리 ══ */
+function rendEdit(){
+  const el=document.getElementById('editList');
+  el.innerHTML=stocks.map(s=>{
+    const tp=s.target>0?pct(s.qty,s.target):null,fc=tp===null?'mf-pu':tp>=80?'mf-g':tp>=40?'mf-y':'mf-b';
+    return`<div style="background:var(--bg);border:1px solid var(--bdr);border-radius:11px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+        <div style="font-weight:700;font-size:.85rem;">${s.name} <span class="sc-tk">${s.ticker}</span></div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-s" onclick="saveRow(${s.id})">저장</button>
+          <button class="btn-d" onclick="delStock(${s.id})">삭제</button>
+        </div>
+      </div>
+      <div class="g2" style="gap:7px;margin-bottom:9px;">
+        <div class="ig"><label>현재 주가 💰</label><input type="number" id="ep_${s.id}" value="${s.price}"></div>
+        <div class="ig"><label>보유 수량</label><input type="number" id="eq_${s.id}" value="${s.qty}"></div>
+        <div class="ig"><label>주당 연배당금 💸</label><input type="number" id="ed_${s.id}" value="${s.divAmt}"></div>
+        <div class="ig"><label>🎯 목표 수량</label><input type="number" id="et_${s.id}" value="${s.target||''}" placeholder="미설정"></div>
+      </div>
+      ${tp!==null
+        ?`<div class="tg-info"><span>달성률 ${tp.toFixed(0)}%</span><span>${s.qty}/${s.target}주 · 남은 ${Math.max(0,s.target-s.qty)}주 · ${fw(Math.max(0,s.target-s.qty)*s.price)}</span></div>
+           <div class="mb"><div class="mf ${fc}" style="width:${tp}%"></div></div>`
+        :`<div class="auto-target">💡 자동계산 또는 직접 목표 수량 입력 · 배당금은 자동최신화 버튼으로 업데이트</div>`}
+    </div>`;
+  }).join('');
+}
+function saveRow(id){
+  const s=stocks.find(x=>x.id===id);if(!s)return;
+  s.price=+document.getElementById('ep_'+id).value||s.price;
+  s.qty=+document.getElementById('eq_'+id).value||0;
+  s.divAmt=+document.getElementById('ed_'+id).value||s.divAmt;
+  s.target=+document.getElementById('et_'+id).value||0;
+  save();updDash();rendEdit();
+  const btn=document.querySelector(`[onclick="saveRow(${id})"]`);
+  if(btn){btn.textContent='✅';setTimeout(()=>btn.textContent='저장',1200);}
+}
+function delStock(id){if(!confirm('삭제?'))return;stocks=stocks.filter(s=>s.id!==id);save();updDash();rendEdit();}
+function addStock(){
+  const nm=document.getElementById('fNm').value.trim(),tk=document.getElementById('fTk').value.trim();
+  if(!nm){alert('종목명은 필수입니다.');return;}
+  stocks.push({id:Date.now(),name:nm,ticker:tk,
+    price:+document.getElementById('fPr').value||0,
+    qty:+document.getElementById('fQt').value||0,
+    divAmt:+document.getElementById('fDv').value||0,
+    target:+document.getElementById('fTg').value||0,type:'dividend'});
+  save();updDash();rendEdit();
+  ['fNm','fTk','fPr','fQt','fDv','fTg'].forEach(id=>document.getElementById(id).value='');
+  alert('추가 완료! 자동최신화 버튼으로 주가·배당금을 조회하세요.');
+}
+
+/* ══ 투자 추천 ══ */
+function calcRec(){
+  const el=document.getElementById('recOut');
+  const ds=stocks.filter(s=>s.type==='dividend'&&s.divAmt>0);
+  if(!ds.length){el.innerHTML=`<div class="empty"><div class="empty-ic">💡</div><div class="empty-tx">배당주를 추가해주세요</div></div>`;return;}
+  const mg=goals.monthly||0,tM=ds.reduce((a,s)=>a+s.divAmt*s.qty/12,0),sh=Math.max(0,mg-tM);
+  let h='';
+  if(mg>0&&sh>0){
+    h+=`<div class="dv">목표까지 종목별 필요 수량</div><div class="tc-card"><div class="tc-hdr">📌 월 ${ff(sh)} 부족 → 각 종목 단독 달성 시</div>`;
+    [...ds].sort((a,b)=>(b.divAmt/b.price)-(a.divAmt/a.price)).forEach(s=>{
+      const mpsh=s.divAmt/12,need=mpsh>0?Math.ceil(sh/mpsh):null,yr=(s.divAmt/s.price*100).toFixed(2);
+      h+=`<div class="tc-row">
+        <div><div class="tc-nm">${s.name}</div><div class="tc-sb">수익률 ${yr}% · 연배당 ${ff(s.divAmt)}/주 · 현재 ${fw(s.divAmt*s.qty/12)}/월</div></div>
+        <div style="text-align:right">${need!==null
+          ?`<div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.9rem;color:#a78bfa;">${need.toLocaleString()}주</div><div style="font-size:.61rem;color:var(--mu)">${fw(need*s.price)}</div>`
+          :`<span style="color:var(--mu);font-size:.7rem">계산불가</span>`}
+        </div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`<div class="dv">이번 달 투자 추천</div>`;
+  if(!budget){
+    h+=`<div class="card" style="text-align:center;color:var(--mu);font-size:.78rem;padding:18px;">예산을 입력하면 최적 종목을 추천해드려요</div>`;
+  }else{
+    const scored=ds.map(s=>{
+      const dy=s.divAmt/s.price,gap=s.target>0?Math.max(0,1-s.qty/s.target):.5,can=Math.floor(budget/s.price);
+      return{...s,dy,gap,score:dy*(0.5+gap),can,addM:can*s.divAmt/12};
+    }).filter(s=>s.can>0).sort((a,b)=>b.score-a.score);
+    if(!scored.length){
+      h+=`<div class="card" style="text-align:center;color:var(--mu);font-size:.78rem;padding:18px;">예산으로 살 수 있는 종목이 없어요</div>`;
+    }else{
+      const best=scored[0],nM=tM+best.addM,nP=pct(nM,mg||1),rem=budget-best.can*best.price;
+      h+=`<div class="hl an">
+        <div class="hl-t">✨ 핵심 추천</div>
+        <div class="hl-m"><span class="ha">${best.name}</span>을 <span class="ha">${best.can}주</span> 매수</div>
+        <div class="hl-s">
+          → 월 배당 <span class="hg">+${fw(best.addM)}</span>${mg>0?` · 달성률 <span class="ha">${nP.toFixed(1)}%</span>로 상승`:''}<br>
+          → 투자금 <span class="hy">${fw(best.can*best.price)}</span>${rem>0?` · 잔여 <span class="hp">${fw(rem)}</span>`:''}
+          ${best.target>0?`<br>→ 목표까지 ${Math.max(0,best.target-best.qty-best.can)}주 남음`:''}
+        </div>
+      </div>`;
+      h+=`<div class="rb-box an"><div class="rb-hdr"><span>효율 순위</span><span style="color:var(--mu);font-size:.6rem">${ff(budget)} 기준</span></div>`;
+      scored.slice(0,6).forEach((s,i)=>{
+        const rc=['rr1','rr2','rr3','','',''][i]||'';
+        h+=`<div class="rb-row"><div class="rb-rank ${rc}">${i+1}</div>
+          <div class="rb-info"><div class="rb-nm">${s.name}</div>
+            <div class="rb-sb">수익률 ${(s.dy*100).toFixed(2)}% · 연배당 ${ff(s.divAmt)}/주 · ${s.target>0?pct(s.qty,s.target).toFixed(0)+'% 달성':'목표 미설정'}</div></div>
+          <div class="rb-right"><div class="rb-cnt">${s.can}주</div><div class="rb-cost">${fw(s.can*s.price)}</div><div class="rb-gain">월+${fw(s.addM)}</div></div>
+        </div>`;
+      });
+      h+=`</div>`;
+      if(mg>0&&sh>0){
+        const b2=scored[0],mpsh2=b2.divAmt/12,nSh=mpsh2>0?Math.ceil(sh/mpsh2):0,tc=nSh*b2.price;
+        const m7=Math.ceil(tc/700000),m10=Math.ceil(tc/1000000);
+        h+=`<div class="dv">목표까지 예상 기간</div>
+        <div class="tc-card an"><div class="tc-hdr">📅 ${b2.name} 집중투자 시뮬레이션</div>
+          <div class="sim-row"><div><div class="sim-lbl">70만원/월 유지</div><div class="sim-sub">8월까지</div></div><div class="sim-val hp">${m7}개월</div></div>
+          <div class="sim-row"><div><div class="sim-lbl">100만원/월 증액</div><div class="sim-sub">8월 이후</div></div><div class="sim-val hg">${m10}개월 <span style="font-size:.62rem;color:var(--mu)">(${Math.max(0,m7-m10)}개월 단축)</span></div></div>
+        </div>`;
+      }
+    }
+  }
+  el.innerHTML=h;
+}
+
+/* ══ 리밸런싱 ══ */
+function calcRebal(){
+  const el=document.getElementById('rebalOut');
+  const ds=stocks.filter(s=>s.type==='dividend'&&s.divAmt>0);
+  if(!ds.length){el.innerHTML=`<div class="empty"><div class="empty-ic">⚖️</div><div class="empty-tx">배당주가 없습니다</div></div>`;return;}
+  const tY=ds.reduce((a,s)=>a+s.divAmt*s.qty,0),tM=tY/12,mg=goals.monthly||1000000;
+  const hasTg=ds.filter(s=>s.target>0),noTg=ds.filter(s=>s.target===0);
+  let h='';
+  if(noTg.length>0) h+=`<div class="alert-box">⚠️ <b>${noTg.map(s=>s.name).join(', ')}</b> 목표 수량 미설정<br>'종목 관리 → 자동계산' 버튼을 사용해보세요.</div>`;
+  h+=`<div class="dv">종목별 목표 달성률</div><div class="rb-box an"><div class="rb-hdr"><span>전체 현황</span><span style="color:var(--mu);font-size:.6rem">달성률 낮은 순</span></div>`;
+  [...ds].sort((a,b)=>{const pa=a.target>0?pct(a.qty,a.target):200,pb=b.target>0?pct(b.qty,b.target):200;return pa-pb;}).forEach(s=>{
+    const tp=s.target>0?pct(s.qty,s.target):null,need=s.target>0?Math.max(0,s.target-s.qty):null,fc=tp===null?'mf-pu':tp>=80?'mf-g':tp>=40?'mf-y':'mf-b';
+    h+=`<div style="padding:12px 14px;border-bottom:1px solid var(--bdr);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div><div style="font-weight:700;font-size:.83rem;">${s.name}</div>
+          <div style="font-size:.62rem;color:var(--mu);">주가 ${fw(s.price)} · 연배당 ${ff(s.divAmt)}/주 · 수익률 ${(s.divAmt/s.price*100).toFixed(2)}%</div></div>
+        <div style="text-align:right;">
+          ${tp!==null
+            ?`<div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${tp>=80?'var(--gr)':tp>=40?'var(--ye)':'var(--ac)'};">${tp.toFixed(0)}%</div>
+               <div style="font-size:.6rem;color:var(--mu);">${s.qty}/${s.target}주</div>`
+            :`<div style="font-size:.65rem;color:#a78bfa;">목표 미설정</div>`}
+        </div>
+      </div>
+      <div class="mb" style="margin-bottom:4px;"><div class="mf ${fc}" style="width:${tp||5}%"></div></div>
+      <div style="font-size:.6rem;color:var(--mu);display:flex;justify-content:space-between;">
+        <span>${tp!==null?`목표 배당 ${fw(s.divAmt*s.target/12)}/월`:'목표 미설정'}</span>
+        <span style="color:${need>0?'var(--ye)':need===0?'var(--gr)':'var(--mu)'};">${need!==null?(need>0?`${need}주 남음 · ${fw(need*s.price)}`:'✅ 달성'):''}</span>
+      </div>
+    </div>`;
+  });
+  h+=`</div>`;
+  const uf=[...hasTg].filter(s=>s.qty<s.target).sort((a,b)=>pct(a.qty,a.target)-pct(b.qty,b.target));
+  h+=`<div class="dv">리밸런싱 추천 순위</div>`;
+  if(uf.length===0&&hasTg.length>0){
+    h+=`<div class="hl"><div class="hl-t">🎉 모든 목표 달성!</div><div class="hl-m">설정한 목표 수량을 모두 채웠습니다</div></div>`;
+  }else if(uf.length>0){
+    h+=`<div class="rb-box an"><div class="rb-hdr"><span>우선 매수 추천</span><span style="color:var(--mu);font-size:.6rem">달성률 낮은 순</span></div>`;
+    uf.slice(0,5).forEach((s,i)=>{
+      const tp=pct(s.qty,s.target),need=s.target-s.qty,gainFull=need*s.divAmt/12,rc=['rr1','rr2','rr3','',''][i]||'';
+      h+=`<div class="rb-row"><div class="rb-rank ${rc}">${i+1}</div>
+        <div class="rb-info"><div class="rb-nm">${s.name}</div>
+          <div class="rb-sb">달성률 ${tp.toFixed(0)}% · ${s.qty}/${s.target}주 · 달성 시 월+${fw(gainFull)}</div></div>
+        <div class="rb-right"><div class="rb-cnt">${need}주 필요</div><div class="rb-cost">${fw(need*s.price)}</div><div class="rb-gain">월+${fw(gainFull)}</div></div>
+      </div>`;
+    });
+    h+=`</div>`;
+    const total=uf.reduce((a,s)=>a+(s.target-s.qty)*s.price,0);
+    let cumC=0;
+    h+=`<div class="dv">단계별 달성 플랜</div><div class="tc-card an"><div class="tc-hdr">🗓️ 순서대로 목표 채우기</div>`;
+    uf.forEach((s,i)=>{const need=s.target-s.qty,cost=need*s.price;cumC+=cost;
+      h+=`<div class="sim-row"><div><div class="sim-lbl">${i+1}단계 · ${s.name}</div><div class="sim-sub">${need}주 · ${ff(cost)} / 70만원 ${Math.ceil(cost/700000)}개월</div></div>
+        <div class="sim-val" style="font-size:.78rem;color:${i===0?'var(--ac)':i===1?'var(--gr)':'var(--ye)'};">누적 ${Math.ceil(cumC/700000)}개월</div></div>`;
+    });
+    h+=`<div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--bdr);font-size:.66rem;color:var(--mu);">
+      총 <span style="color:var(--ac);font-weight:700">${ff(total)}</span> · 
+      70만원 <span style="color:var(--ye);font-weight:700">${Math.ceil(total/700000)}개월</span> · 
+      100만원 <span style="color:var(--gr);font-weight:700">${Math.ceil(total/1000000)}개월</span>
+    </div></div>`;
+    if(hasTg.length>0){
+      const futM=hasTg.reduce((a,s)=>a+s.divAmt*s.target/12,0)+noTg.reduce((a,s)=>a+s.divAmt*s.qty/12,0);
+      h+=`<div class="dv">목표 달성 후 예상</div><div class="hl an">
+        <div class="hl-t">📊 목표 수량 전부 채웠을 때</div>
+        <div class="hl-m">월 배당 <span class="hg">${fw(futM)}</span></div>
+        <div class="hl-s">현재 ${fw(tM)} → 달성 시 ${fw(futM)} · 목표 대비 <span class="${futM>=mg?'hg':'hy'}">${(futM/mg*100).toFixed(0)}%</span>
+        ${futM<mg?`<br>부족분 <span class="hy">${fw(mg-futM)}/월</span>`:'<br>→ <span class="hg">목표 초과 달성 예정!</span>'}
+        </div>
+      </div>`;
+    }
+  }
+  el.innerHTML=h;
+}
+
+load(); updDash();
+</script>
+</body>
+</html>
