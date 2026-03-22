@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#070c1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>내 배당 포트폴리오</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070c1a;--sur:#0e1628;--sur2:#141e35;--bdr:#1e2d4a;
+  --ac:#00d4ff;--ac2:#7c3aed;--gr:#10b981;--ye:#f59e0b;--re:#ef4444;
+  --tx:#e2e8f0;--mu:#64748b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;width:100%;}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
+  min-height:100vh;min-height:100dvh;overflow-x:hidden;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:calc(120px + env(safe-area-inset-bottom));
+  overscroll-behavior:none;}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at 20% 20%,rgba(0,212,255,.05) 0%,transparent 50%),
+             radial-gradient(ellipse at 80% 80%,rgba(124,58,237,.05) 0%,transparent 50%);
+  pointer-events:none;z-index:0;}
+.w{max-width:480px;margin:0 auto;padding:0 14px;position:relative;z-index:1;}
+
+/* 헤더 */
+header{position:sticky;top:0;z-index:100;
+  background:rgba(7,12,26,.93);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bdr);
+  padding:12px 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;}
+.hdr-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-sub{font-size:.59rem;color:var(--mu);margin-top:1px;}
+.hdr-pct{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;color:var(--ac);text-align:right;}
+.hdr-amt{font-size:.59rem;color:var(--mu);margin-top:1px;text-align:right;}
+
+/* 탭바 */
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:rgba(10,16,30,.96);backdrop-filter:blur(14px);
+  border-top:1px solid var(--bdr);display:flex;
+  padding-bottom:env(safe-area-inset-bottom);}
+.tbb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:9px 4px 7px;cursor:pointer;color:var(--mu);gap:3px;
+  -webkit-tap-highlight-color:transparent;transition:color .2s;}
+.tbb.on{color:var(--ac);}
+.tbb-ic{font-size:1.1rem;line-height:1;}
+.tbb-lb{font-size:.57rem;font-weight:500;}
+.tc{display:none;padding-top:12px;}.tc.on{display:block;}
+
+/* 카드 */
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac),var(--ac2));opacity:0;transition:opacity .3s;}
+.card:focus-within::before{opacity:1;}
+.ct{font-size:.63rem;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ct::after{content:'';flex:1;height:1px;background:var(--bdr);}
+
+/* 인풋 */
+input[type=number],input[type=text],select{
+  background:var(--bg);border:1px solid var(--bdr);border-radius:9px;
+  padding:9px 10px;color:var(--tx);font-family:'JetBrains Mono',monospace;
+  font-size:.84rem;width:100%;-webkit-appearance:none;appearance:none;transition:border-color .2s;}
+input:focus,select:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%2364748b' d='M5 7L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;}
+select option{background:var(--sur2);}
+.ig{display:flex;flex-direction:column;gap:4px;}
+.ig label{font-size:.63rem;color:var(--mu);font-weight:500;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* 이번달 배당 배너 */
+.this-month-banner{
+  background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(0,212,255,.06));
+  border:1px solid rgba(16,185,129,.25);border-radius:14px;
+  padding:14px 16px;margin-bottom:10px;}
+.tmb-header{font-size:.63rem;color:var(--gr);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.tmb-header::after{content:'';flex:1;height:1px;background:rgba(16,185,129,.2);}
+.tmb-stock-row{display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid var(--bdr);font-size:.68rem;}
+.tmb-stock-row:last-child{border-bottom:none;}
+.tmb-stock-name{color:var(--mu);display:flex;align-items:center;gap:5px;}
+.tmb-stock-amt{font-family:'JetBrains Mono',monospace;color:var(--gr);font-weight:600;}
+.tmb-total-row{display:flex;justify-content:space-between;align-items:center;
+  padding-top:9px;margin-top:5px;border-top:1px solid rgba(16,185,129,.2);}
+.tmb-total-label{font-size:.78rem;color:var(--gr);font-weight:600;}
+.tmb-total-val{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--gr);}
+.tmb-none-msg{font-size:.7rem;color:var(--mu);text-align:center;padding:4px 0;}
+
+/* 히어로 */
+.goal-hero{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));
+  border:1px solid rgba(0,212,255,.2);border-radius:16px;padding:14px;margin-bottom:10px;}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.hero-lbl{font-size:.6rem;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.hero-val{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:1px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:.6rem;color:var(--mu);}
+.hero-right{text-align:right;}
+.hero-yr-lbl{font-size:.58rem;color:var(--mu);margin-bottom:3px;}
+.hero-yr-val{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700;color:var(--gr);}
+.pb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.pb-lbl{font-size:.63rem;color:var(--mu);}
+.pb-pct{font-family:'JetBrains Mono',monospace;font-size:.76rem;font-weight:600;}
+.pb{height:8px;background:var(--sur2);border-radius:99px;overflow:hidden;border:1px solid var(--bdr);}
+/* [Fix #13] 진행바 색상: 달성률에 따라 변경 */
+.pf{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.4,0,.2,1),background .5s;}
+.pf.low {background:linear-gradient(90deg,var(--ac),var(--ac2));}
+.pf.mid {background:linear-gradient(90deg,var(--ye),#f97316);}
+.pf.high{background:linear-gradient(90deg,var(--gr),#059669);}
+
+/* 요약 */
+.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;}
+.si{background:var(--sur2);border:1px solid var(--bdr);border-radius:11px;padding:9px 7px;text-align:center;}
+.si .lb{font-size:.55rem;color:var(--mu);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px;}
+.si .vl{font-family:'JetBrains Mono',monospace;font-size:.83rem;font-weight:700;color:var(--ac);}
+.vl.gr{color:var(--gr);}.vl.ye{color:var(--ye);}.vl.pu{color:#a78bfa;}
+
+/* 종목 카드 */
+.sc{background:var(--sur);border:1px solid var(--bdr);border-radius:13px;padding:13px;margin-bottom:9px;transition:border-color .3s;}
+.sc.editing{border-color:rgba(0,212,255,.35);box-shadow:0 0 0 3px rgba(0,212,255,.06);}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.sc-name{font-weight:700;font-size:.88rem;}
+.sc-tk{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--ac);background:rgba(0,212,255,.08);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:2px;}
+.sc-pct{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.95rem;text-align:right;}
+.sc-qty{font-size:.59rem;color:var(--mu);text-align:right;margin-top:2px;}
+.sc-stats{display:grid;gap:5px;margin-bottom:8px;}
+.sc-stats.c3{grid-template-columns:repeat(3,1fr);}
+.sc-stats.c4{grid-template-columns:repeat(4,1fr);}
+.st{background:var(--bg);border-radius:7px;padding:6px 4px;text-align:center;}
+.st .sl{font-size:.52rem;color:var(--mu);display:block;margin-bottom:2px;line-height:1.2;}
+.st .sv{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:600;}
+.st.hl{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);}
+.st.hl .sl{color:var(--ac);}.st.hl .sv{color:var(--ac);}
+.st.hl-gr{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);}
+.st.hl-gr .sl{color:var(--gr);}.st.hl-gr .sv{color:var(--gr);}
+
+/* 배당 타이밍 */
+.div-timing{font-size:.62rem;border-radius:8px;padding:6px 10px;margin-bottom:8px;line-height:1.5;}
+.dt-m{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);color:var(--ac);}
+.dt-q{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);color:var(--gr);}
+.dt-h{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);color:var(--ye);}
+.dt-y{background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);color:#a78bfa;}
+
+/* [추가 #11] 다음 배당 예정 */
+.next-div-badge{font-size:.6rem;color:var(--mu);margin-top:4px;padding:4px 8px;background:var(--sur2);border-radius:6px;display:inline-block;}
+
+.tg-row{display:flex;justify-content:space-between;font-size:.61rem;color:var(--mu);margin-bottom:3px;}
+.mb{height:6px;background:var(--sur2);border-radius:99px;overflow:hidden;}
+.mf{height:100%;border-radius:99px;transition:width .5s;}
+.mf-g{background:var(--gr);}.mf-y{background:var(--ye);}.mf-b{background:var(--ac);}.mf-pu{background:linear-gradient(90deg,var(--ac2),#a78bfa);}
+
+/* 편집 패널 */
+.ep{display:none;padding-top:10px;border-top:1px solid var(--bdr);margin-top:4px;}
+.ep.open{display:block;}
+.ep-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;}
+.ep-lbl{font-size:.62rem;color:var(--mu);margin-bottom:3px;display:block;}
+.ep-input{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:.84rem;width:100%;-webkit-appearance:none;transition:border-color .2s;}
+.ep-input:focus{outline:none;border-color:var(--ac);}
+.ep-sel{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--tx);font-family:'Noto Sans KR',sans-serif;font-size:.78rem;width:100%;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%2364748b' d='M5 7L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;}
+.ep-sel:focus{outline:none;border-color:var(--ac);}
+.ep-sel option{background:var(--sur2);}
+.div-sec{background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;padding:11px;margin-bottom:8px;}
+.div-sec-title{font-size:.63rem;color:var(--ac);font-weight:700;letter-spacing:.5px;margin-bottom:8px;}
+.div-row{display:flex;gap:7px;align-items:flex-end;}
+.div-calc{font-size:.62rem;color:var(--gr);margin-top:6px;padding:5px 8px;background:rgba(16,185,129,.07);border-radius:7px;border:1px solid rgba(16,185,129,.15);}
+.div-calc b{font-family:'JetBrains Mono',monospace;}
+.ep-footer{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+.saved{font-size:.62rem;color:var(--gr);opacity:0;transition:opacity .3s;}
+.saved.show{opacity:1;}
+.ep-hint{font-size:.59rem;color:var(--mu);margin-top:5px;}
+
+/* 배당월 입력 */
+.month-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.month-chip{font-size:.65rem;padding:4px 8px;border-radius:6px;border:1px solid var(--bdr);
+  background:var(--bg);color:var(--mu);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;user-select:none;}
+.month-chip.active{background:rgba(0,212,255,.15);border-color:var(--ac);color:var(--ac);font-weight:700;}
+
+/* 뱃지 */
+.freq-tag{font-size:.56rem;padding:2px 7px;border-radius:5px;font-weight:700;display:inline-block;margin-left:4px;vertical-align:middle;}
+.ft-m{background:rgba(0,212,255,.12);color:var(--ac);}
+.ft-q{background:rgba(16,185,129,.12);color:var(--gr);}
+.ft-h{background:rgba(245,158,11,.12);color:var(--ye);}
+.ft-y{background:rgba(124,58,237,.12);color:#a78bfa;}
+.this-month-badge{font-size:.56rem;padding:2px 7px;border-radius:5px;font-weight:700;
+  display:inline-block;margin-left:4px;vertical-align:middle;
+  background:rgba(16,185,129,.2);color:var(--gr);border:1px solid rgba(16,185,129,.35);
+  animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.6;}}
+
+/* 버튼 */
+.btn-p{width:100%;padding:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));
+  border:none;border-radius:11px;color:white;font-weight:700;font-size:.8rem;
+  cursor:pointer;transition:opacity .2s,transform .15s;font-family:'Noto Sans KR',sans-serif;}
+.btn-p:active{opacity:.85;transform:scale(.98);}
+.btn-auto{background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);border-radius:8px;
+  color:#a78bfa;font-size:.7rem;padding:7px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600;width:100%;margin-top:7px;}
+.btn-del{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;
+  color:var(--re);font-size:.63rem;padding:3px 9px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+.btn-outline{background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;
+  color:var(--mu);font-size:.73rem;padding:9px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+  width:100%;transition:border-color .2s,color .2s;}
+.btn-outline:hover{border-color:var(--ac);color:var(--ac);}
+
+/* 추천/리밸 공통 */
+.rb-box{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:10px;}
+.rb-hdr{padding:10px 13px;background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));
+  border-bottom:1px solid var(--bdr);font-size:.63rem;color:var(--ac);letter-spacing:1px;text-transform:uppercase;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.rb-row{padding:11px 13px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px;}
+.rb-row:last-child{border-bottom:none;}
+.rb-rank{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;width:22px;flex-shrink:0;color:var(--bdr);}
+.rr1{color:var(--ac);}.rr2{color:var(--gr);}.rr3{color:var(--ye);}
+.rb-info{flex:1;}.rb-nm{font-weight:700;font-size:.82rem;margin-bottom:2px;}
+.rb-sb{font-size:.61rem;color:var(--mu);line-height:1.5;}
+.rb-right{text-align:right;flex-shrink:0;}
+.rb-cnt{font-family:'JetBrains Mono',monospace;font-size:.92rem;font-weight:700;color:var(--ac);}
+.rb-cost{font-size:.61rem;color:var(--mu);margin-top:2px;}
+.rb-gain{font-size:.63rem;color:var(--gr);font-weight:600;margin-top:2px;}
+.hl{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(124,58,237,.08));
+  border:1px solid rgba(0,212,255,.25);border-radius:13px;padding:13px;margin-bottom:10px;}
+.hl-t{font-size:.61rem;color:var(--ac);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+.hl-m{font-size:.97rem;font-weight:700;line-height:1.5;margin-bottom:5px;}
+.hl-s{font-size:.69rem;color:var(--mu);line-height:1.7;}
+.ha{color:var(--ac);}.hg{color:var(--gr);}.hy{color:var(--ye);}.hp{color:#a78bfa;}
+.tc-card{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(124,58,237,.04));
+  border:1px solid rgba(0,212,255,.15);border-radius:13px;padding:12px;margin-bottom:10px;}
+.tc-hdr{font-size:.63rem;color:var(--ac);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;font-weight:700;}
+.tc-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr);}
+.tc-row:last-child{border-bottom:none;}
+.tc-nm{font-size:.78rem;font-weight:600;}.tc-sb{font-size:.6rem;color:var(--mu);margin-top:1px;line-height:1.4;}
+.alert-box{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);
+  border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:.66rem;color:var(--ye);line-height:1.6;}
+.dv{font-size:.58rem;color:var(--mu);letter-spacing:2px;text-transform:uppercase;
+  margin:13px 0 7px;display:flex;align-items:center;gap:6px;}
+.dv::before,.dv::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.bud-row{display:flex;align-items:center;gap:8px;}
+.bud-row input{flex:1;}
+.bud-won{font-size:.72rem;color:var(--mu);white-space:nowrap;}
+.empty{text-align:center;padding:30px 16px;color:var(--mu);}
+.empty-ic{font-size:2rem;margin-bottom:8px;}
+.empty-tx{font-size:.76rem;line-height:1.7;}
+.sim-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr);}
+.sim-row:last-child{border-bottom:none;}
+.sim-lbl{font-size:.76rem;font-weight:600;}.sim-sub{font-size:.6rem;color:var(--mu);margin-top:1px;}
+.sim-val{font-family:'JetBrains Mono',monospace;font-size:.86rem;font-weight:700;}
+
+/* [추가 #9] 토스트 */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(16,185,129,.92);color:#fff;font-size:.75rem;font-weight:600;
+  padding:9px 18px;border-radius:20px;opacity:0;transition:opacity .25s,transform .25s;
+  z-index:999;white-space:nowrap;pointer-events:none;backdrop-filter:blur(6px);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* 최적 플랜 카드 */
+.plan-summary{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(0,212,255,.06));
+  border:1px solid rgba(16,185,129,.25);border-radius:14px;padding:14px;margin-bottom:10px;}
+.plan-summary-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.plan-summary-row:last-child{margin-bottom:0;}
+.plan-total-lbl{font-size:.72rem;color:var(--mu);}
+.plan-total-val{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--gr);}
+.plan-item{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;
+  padding:12px 13px;margin-bottom:8px;position:relative;overflow:hidden;}
+.plan-item::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
+.plan-item.rank-1::before{background:var(--ac);}
+.plan-item.rank-2::before{background:var(--gr);}
+.plan-item.rank-3::before{background:var(--ye);}
+.plan-item.rank-other::before{background:var(--bdr);}
+.plan-item-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.plan-item-name{font-weight:700;font-size:.86rem;}
+.plan-item-priority{font-size:.6rem;padding:2px 8px;border-radius:10px;font-weight:700;}
+.pri-1{background:rgba(0,212,255,.15);color:var(--ac);border:1px solid rgba(0,212,255,.3);}
+.pri-2{background:rgba(16,185,129,.15);color:var(--gr);border:1px solid rgba(16,185,129,.3);}
+.pri-3{background:rgba(245,158,11,.15);color:var(--ye);border:1px solid rgba(245,158,11,.3);}
+.pri-other{background:var(--sur2);color:var(--mu);border:1px solid var(--bdr);}
+.plan-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;}
+.plan-stat{background:var(--bg);border-radius:7px;padding:6px 4px;text-align:center;}
+.plan-stat .sl{font-size:.52rem;color:var(--mu);display:block;margin-bottom:2px;}
+.plan-stat .sv{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;}
+.plan-stat.ac .sl{color:var(--ac);} .plan-stat.ac .sv{color:var(--ac);}
+.plan-stat.gr .sl{color:var(--gr);} .plan-stat.gr .sv{color:var(--gr);}
+.plan-bar-wrap{margin-bottom:6px;}
+.plan-bar-info{display:flex;justify-content:space-between;font-size:.6rem;color:var(--mu);margin-bottom:3px;}
+.plan-reason{font-size:.63rem;color:var(--mu);line-height:1.5;padding:6px 9px;
+  background:var(--sur2);border-radius:7px;margin-top:6px;}
+.plan-reason b{color:var(--tx);}
+.apply-btn{width:100%;padding:9px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);
+  border-radius:9px;color:var(--ac);font-size:.73rem;font-weight:600;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;margin-top:10px;transition:background .2s;}
+.apply-btn:active{background:rgba(0,212,255,.2);}
+
+@keyframes fu{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.an{animation:fu .25s ease forwards;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<header>
+  <div>
+    <div class="hdr-title">배당 트래커</div>
+    <div class="hdr-sub">월 100만원 배당 목표</div>
+  </div>
+  <div>
+    <div class="hdr-pct" id="hdrPct">0%</div>
+    <div class="hdr-amt" id="hdrAmt">연 ₩0</div>
+  </div>
+</header>
+
+<div class="w">
+  <!-- 현황 -->
+  <div id="tab-dash" class="tc on">
+
+    <div class="this-month-banner">
+      <div class="tmb-header">📅 이번 달 받을 배당금</div>
+      <div id="thisMonthContent"></div>
+    </div>
+
+    <div class="goal-hero">
+      <div class="hero-top">
+        <div>
+          <div class="hero-lbl">연간 배당 수입</div>
+          <div class="hero-val" id="heroVal">₩0</div>
+          <div class="hero-sub" id="heroSub">월 평균 ₩0 · 달성률 0%</div>
+        </div>
+        <div class="hero-right">
+          <div class="hero-yr-lbl">연 목표</div>
+          <div class="hero-yr-val" id="heroGoal">₩12,000,000</div>
+        </div>
+      </div>
+      <div class="pb-head">
+        <span class="pb-lbl">연 목표 달성률</span>
+        <span class="pb-pct" id="ppBar" style="color:var(--ac)">0%</span>
+      </div>
+      <div class="pb"><div class="pf low" id="pgFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="sg">
+      <div class="si"><div class="lb">월 평균</div><div class="vl" id="avgMonth">₩0</div></div>
+      <div class="si"><div class="lb">투자원금</div><div class="vl pu" id="totCost">₩0</div></div>
+      <div class="si"><div class="lb">평균수익률</div><div class="vl gr" id="avgYield">0%</div></div>
+    </div>
+
+    <div class="dv">종목 현황 · 탭해서 수정</div>
+    <div id="stockCards"></div>
+
+    <!-- 종목 추가: 접기/펼치기 -->
+    <div id="addFormWrap" style="margin-bottom:10px;">
+      <button onclick="toggleAddForm()"
+        style="width:100%;padding:12px;background:rgba(0,212,255,.08);border:1px dashed rgba(0,212,255,.3);
+               border-radius:12px;color:var(--ac);font-size:.8rem;font-weight:700;cursor:pointer;
+               font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;
+               transition:background .2s;" id="addFormToggleBtn">
+        <span id="addFormToggleIcon">➕</span> 종목 추가
+      </button>
+      <div id="addFormBody" style="display:none;margin-top:8px;">
+        <div class="card" style="margin-bottom:0;">
+          <div class="g2" style="margin-bottom:8px;">
+            <div class="ig"><label>종목명 *</label><input type="text" id="fNm" placeholder="종목명"></div>
+            <div class="ig"><label>티커</label><input type="text" id="fTk" placeholder="055550"></div>
+            <div class="ig"><label>주가 (원)</label><input type="number" id="fPr" placeholder="57000"></div>
+            <div class="ig"><label>보유 수량</label><input type="number" id="fQt" placeholder="0"></div>
+          </div>
+          <div class="div-sec" style="margin-bottom:8px;">
+            <div class="div-sec-title">💸 받을 배당금</div>
+            <div class="div-row">
+              <div style="flex:1;"><span class="ep-lbl">1주당 배당금 (원)</span>
+                <input type="number" id="fDv" placeholder="880" oninput="previewAdd()"></div>
+              <div style="width:108px;"><span class="ep-lbl">지급 주기</span>
+                <select id="fFreq" onchange="previewAdd();renderAddMonthPicker()">
+                  <option value="1">연 1회</option>
+                  <option value="2">반기 (연2)</option>
+                  <option value="4" selected>분기 (연4)</option>
+                  <option value="12">월배당</option>
+                </select>
+              </div>
+            </div>
+            <div class="div-calc" id="fPreview" style="display:none"></div>
+            <div id="addMonthPickerWrap" style="margin-top:8px;">
+              <span class="ep-lbl">배당 지급월 선택</span>
+              <div class="month-grid" id="addMonthPicker"></div>
+            </div>
+          </div>
+          <div class="ig" style="margin-bottom:8px;"><label>목표 수량</label><input type="number" id="fTg" placeholder="나중에 설정 가능"></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-p" onclick="addStock()" style="flex:1;">종목 추가</button>
+            <button onclick="toggleAddForm()"
+              style="padding:12px 16px;background:var(--sur2);border:1px solid var(--bdr);border-radius:11px;
+                     color:var(--mu);font-size:.78rem;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+              취소
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 목표 -->
+  <div id="tab-target" class="tc">
+
+    <!-- 목표 설정 -->
+    <div class="card">
+      <div class="ct">🎯 배당금 목표 설정</div>
+      <div class="g2">
+        <div class="ig"><label>월 목표 (원)</label><input type="number" id="gM" value="1000000" oninput="onGM()"></div>
+        <div class="ig"><label>연 목표 (자동)</label><input type="number" id="gY" value="12000000" oninput="onGY()" style="color:var(--mu)"></div>
+      </div>
+      <div style="font-size:.62rem;color:var(--mu);margin-top:7px;">💡 월 목표 입력 시 연 목표가 자동 계산됩니다</div>
+    </div>
+
+    <!-- 최적 포트폴리오 플랜 -->
+    <div class="card">
+      <div class="ct">🤖 최적 포트폴리오 플랜</div>
+      <div style="font-size:.72rem;color:var(--mu);line-height:1.6;margin-bottom:10px;">
+        월 <b style="color:var(--ac)" id="autoGoalLabel">100만원</b> 목표를 달성하기 위한<br>
+        <b style="color:var(--tx)">가장 효율적인 종목 조합</b>을 계산합니다
+      </div>
+      <div class="g2" style="margin-bottom:8px;">
+        <button class="btn-auto" onclick="calcOptimalPlan('yield')" style="margin-top:0">📈 수익률 우선</button>
+        <button class="btn-auto" onclick="calcOptimalPlan('balanced')" style="margin-top:0">⚖️ 균형 배분</button>
+      </div>
+      <div style="font-size:.6rem;color:var(--mu);">
+        수익률 우선: 배당수익률 높은 순으로 목표 채우기<br>
+        균형 배분: 모든 종목을 고르게 활용
+      </div>
+    </div>
+
+    <!-- 플랜 결과 -->
+    <div id="targetPlan"></div>
+
+    <!-- 종목별 목표 수량 직접 편집 -->
+    <div class="dv">목표 수량 직접 수정</div>
+    <div id="targetList"></div>
+  </div>
+
+  <!-- 추천 -->
+  <div id="tab-rec" class="tc">
+    <div class="card">
+      <div class="ct">💰 이번 달 투자 가능 금액</div>
+      <div class="bud-row">
+        <input type="number" id="bud" placeholder="700000" oninput="saveBud();calcRec()">
+        <span class="bud-won">원</span>
+      </div>
+    </div>
+    <div id="recOut"></div>
+  </div>
+
+  <!-- 리밸런싱 -->
+  <div id="tab-rebal" class="tc">
+    <div id="rebalOut"></div>
+  </div>
+
+  <!-- [추가 #12] 데이터 백업/복원 -->
+  <div id="tab-setting" class="tc">
+    <div class="card">
+      <div class="ct">💾 데이터 백업 · 복원</div>
+      <div style="font-size:.72rem;color:var(--mu);line-height:1.7;margin-bottom:12px;">
+        브라우저 초기화 전 반드시 백업해두세요.<br>JSON 파일로 내보내고 다시 불러올 수 있습니다.
+      </div>
+      <button class="btn-p" onclick="exportData()" style="margin-bottom:8px;">📤 데이터 내보내기 (JSON)</button>
+      <label style="display:block;">
+        <div class="btn-outline" style="text-align:center;">📥 데이터 불러오기 (JSON)</div>
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none;">
+      </label>
+    </div>
+    <div class="card">
+      <div class="ct">⚠️ 데이터 초기화</div>
+      <div style="font-size:.72rem;color:var(--mu);margin-bottom:12px;">초기 데이터로 되돌립니다. 복구 불가.</div>
+      <button class="btn-p" onclick="resetData()" style="background:linear-gradient(135deg,var(--re),#b91c1c);">🗑️ 전체 초기화</button>
+    </div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tbb on" id="tbb-dash"    onclick="ST('dash',this)">   <div class="tbb-ic">📊</div><div class="tbb-lb">현황</div></div>
+  <div class="tbb"    id="tbb-target"  onclick="ST('target',this)"> <div class="tbb-ic">🎯</div><div class="tbb-lb">목표</div></div>
+  <div class="tbb"    id="tbb-rec"     onclick="ST('rec',this)">    <div class="tbb-ic">💡</div><div class="tbb-lb">추천</div></div>
+  <div class="tbb"    id="tbb-rebal"   onclick="ST('rebal',this)">  <div class="tbb-ic">⚖️</div><div class="tbb-lb">리밸런싱</div></div>
+  <div class="tbb"    id="tbb-setting" onclick="ST('setting',this)"><div class="tbb-ic">⚙️</div><div class="tbb-lb">설정</div></div>
+</div>
+
+<script>
+/* ══ 배당 주기 ══ */
+const FREQ={
+  1: {label:'연1회', tag:'ft-y', cls:'dt-y', desc:'연 1회 지급'},
+  2: {label:'반기',  tag:'ft-h', cls:'dt-h', desc:'6개월마다 지급 (연 2회)'},
+  4: {label:'분기',  tag:'ft-q', cls:'dt-q', desc:'3개월마다 지급 (연 4회)'},
+  12:{label:'월배당',tag:'ft-m', cls:'dt-m', desc:'매달 지급 (연 12회)'},
+};
+const MN=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+/* 헬퍼 */
+const yearDiv = s => (s.divAmt||0) * (s.freq||1);
+
+/* ══ 데이터 ══ */
+/* [Fix #4] 삼성전자 divMonths 정렬 수정 */
+const DEFAULT=[
+  {id:1, name:'미국배당다우존스', ticker:'489250', price:14560,  qty:190, divAmt:38,   freq:12, divMonths:[1,2,3,4,5,6,7,8,9,10,11,12], target:0, type:'dividend'},
+  {id:2, name:'삼성전자',         ticker:'005930', price:56000,  qty:2,   divAmt:566,  freq:4,  divMonths:[1,4,7,10],                      target:0, type:'dividend'},
+  {id:3, name:'현대차2우B',       ticker:'005387', price:264500, qty:1,   divAmt:2600, freq:4,  divMonths:[4,6,9,12],                      target:0, type:'dividend'},
+  {id:4, name:'KB금융',           ticker:'105560', price:155200, qty:2,   divAmt:1605, freq:4,  divMonths:[4,5,8,11],                      target:0, type:'dividend'},
+  {id:5, name:'신한지주',         ticker:'055550', price:97900,  qty:1,   divAmt:880,  freq:4,  divMonths:[4,5,8,11],                      target:0, type:'dividend'},
+  {id:6, name:'맥쿼리인프라',     ticker:'088980', price:11510,  qty:3,   divAmt:380,  freq:2,  divMonths:[2,8],                           target:0, type:'dividend'},
+];
+
+let stocks=[], goals={monthly:1000000,yearly:12000000}, budget=0;
+
+/* ── 저장/로드 ── */
+function save(){ localStorage.setItem('dv13_s', JSON.stringify(stocks)); }
+
+/* [Fix #7] load 에러 로깅 */
+function load(){
+  try{
+    const s=localStorage.getItem('dv13_s'),
+          g=localStorage.getItem('dv13_g'),
+          b=localStorage.getItem('dv13_b');
+    stocks = s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT));
+    stocks.forEach(s=>{ if(!s.freq) s.freq=1; if(!s.divMonths) s.divMonths=[]; });
+    if(g) goals=JSON.parse(g);
+    document.getElementById('gM').value=goals.monthly;
+    document.getElementById('gY').value=goals.yearly;
+    if(b){ budget=+b; document.getElementById('bud').value=budget||''; }
+  }catch(e){
+    console.warn('[배당트래커] 데이터 로드 실패, 기본값 사용:', e);
+    stocks=JSON.parse(JSON.stringify(DEFAULT));
+  }
+}
+function saveG(){ localStorage.setItem('dv13_g', JSON.stringify(goals)); }
+function saveBud(){ budget=+document.getElementById('bud').value||0; localStorage.setItem('dv13_b', budget); }
+
+/* ── 탭 전환 ── */
+function ST(id, el){
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tbb').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  document.getElementById('tbb-'+id).classList.add('on');
+  if(id==='dash')    updDash();
+  if(id==='target')  { rendTargetList(); updGoalInputs(); document.getElementById('targetPlan').innerHTML=''; }
+  if(id==='rec')     calcRec();
+  if(id==='rebal')   calcRebal();
+}
+
+/* ── 목표 입력 ── */
+function onGM(){
+  goals.monthly=+document.getElementById('gM').value||0;
+  goals.yearly=goals.monthly*12;
+  const gYel=document.getElementById('gY');
+  if(gYel) gYel.value=goals.yearly||'';
+  saveG(); updNums();
+  // autoGoalLabel 실시간 반영
+  const al=document.getElementById('autoGoalLabel');
+  if(al) al.textContent=(goals.monthly||0).toLocaleString()+'원';
+}
+function onGY(){
+  goals.yearly=+document.getElementById('gY').value||0;
+  goals.monthly=Math.round(goals.yearly/12);
+  const gMel=document.getElementById('gM');
+  if(gMel) gMel.value=goals.monthly||'';
+  saveG(); updNums();
+  const al=document.getElementById('autoGoalLabel');
+  if(al) al.textContent=(goals.monthly||0).toLocaleString()+'원';
+}
+function updGoalInputs(){
+  const gMel=document.getElementById('gM');
+  const gYel=document.getElementById('gY');
+  if(gMel) gMel.value=goals.monthly;
+  if(gYel) gYel.value=goals.yearly;
+  const al=document.getElementById('autoGoalLabel');
+  if(al) al.textContent=(goals.monthly||1000000).toLocaleString()+'원';
+}
+
+/* ── 포맷 ── */
+function f(n){ n=Math.round(n); if(n>=100000000)return(n/100000000).toFixed(1)+'억'; if(n>=10000)return Math.round(n/10000)+'만'; return n.toLocaleString(); }
+function fw(n){ return '₩'+f(n); }
+function ff(n){ return Math.round(n).toLocaleString()+'원'; }
+function pct(a,b){ return b>0?Math.min(a/b*100,100):0; }
+
+/* [추가 #9] 토스트 */
+function toast(msg, color='var(--gr)'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=`rgba(${color==='var(--gr)'?'16,185,129':color==='var(--re)'?'239,68,68':'0,212,255'},.92)`;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+/* ── 이번 달 지급 여부 ── */
+function isThisMonth(s){
+  const m=new Date().getMonth()+1;
+  if(!s.divMonths||!s.divMonths.length){
+    return s.freq===12;
+  }
+  return s.divMonths.includes(m);
+}
+
+/* [추가 #11] 다음 배당월 계산 */
+function nextDivMonth(s){
+  if(!s.divMonths||!s.divMonths.length) return null;
+  const m=new Date().getMonth()+1;
+  const sorted=[...s.divMonths].sort((a,b)=>a-b);
+  const next=sorted.find(mo=>mo>m) || sorted[0];
+  return next;
+}
+
+/* ── 이번달 배당 계산 ── */
+function calcThisMonth(){
+  const ds=stocks.filter(s=>s.type==='dividend');
+  const paying=ds.filter(s=>isThisMonth(s)&&s.qty>0&&s.divAmt>0);
+  const thisMonthTotal=paying.reduce((a,s)=>a+s.divAmt*s.qty, 0);
+  const allHoldingsAnnual=ds.reduce((a,s)=>a+yearDiv(s)*s.qty, 0);
+  const m=new Date().getMonth()+1;
+  const el=document.getElementById('thisMonthContent');
+  let h='';
+
+  if(paying.length===0){
+    h+=`<div class="tmb-none-msg">${MN[m-1]}은 배당 지급이 없어요</div>`;
+    // 다음 배당월 탐색
+    for(let i=1;i<=12;i++){
+      const nm=(m-1+i)%12+1;
+      const hasPay=ds.some(s=>s.divMonths&&s.divMonths.includes(nm)&&s.qty>0&&s.divAmt>0);
+      if(hasPay){ h+=`<div style="font-size:.65rem;color:var(--mu);text-align:center;margin-top:3px;">다음 배당: <b style="color:var(--ye)">${MN[nm-1]}</b></div>`; break; }
+    }
+  } else {
+    h+=`<div>`;
+    paying.forEach(s=>{
+      const amt=s.divAmt*s.qty;
+      h+=`<div class="tmb-stock-row">
+        <span class="tmb-stock-name"><span class="freq-tag ${FREQ[s.freq||1].tag}">${FREQ[s.freq||1].label}</span>${s.name}</span>
+        <span class="tmb-stock-amt">+${ff(amt)}</span>
+      </div>`;
+    });
+    h+=`</div>`;
+    h+=`<div class="tmb-total-row">
+      <span class="tmb-total-label">이번 달 합계</span>
+      <span class="tmb-total-val">+${ff(thisMonthTotal)}</span>
+    </div>`;
+  }
+
+  h+=`<div style="margin-top:10px;padding-top:9px;border-top:1px solid rgba(16,185,129,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:.72rem;color:var(--mu);">보유 주식 연간 배당 합산</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--ac);">${ff(allHoldingsAnnual)}</span>
+    </div>
+    <div style="font-size:.62rem;color:var(--mu);margin-top:3px;">월 평균 ${fw(allHoldingsAnnual/12)} · 목표 ${pct(allHoldingsAnnual,goals.yearly||12000000).toFixed(1)}% 달성</div>
+  </div>`;
+
+  el.innerHTML=h;
+}
+
+/* ── 추가 폼: 배당월 피커 ── */
+/* [Fix #5] 종목 추가 시 divMonths 선택 UI */
+const addSelectedMonths=new Set();
+function renderAddMonthPicker(){
+  const freq=+document.getElementById('fFreq').value||4;
+  const wrap=document.getElementById('addMonthPickerWrap');
+  const grid=document.getElementById('addMonthPicker');
+  if(freq===12){ wrap.style.display='none'; addSelectedMonths.clear(); for(let i=1;i<=12;i++) addSelectedMonths.add(i); return; }
+  wrap.style.display='block';
+  grid.innerHTML=MN.map((mn,i)=>{
+    const m=i+1;
+    return `<div class="month-chip ${addSelectedMonths.has(m)?'active':''}" onclick="toggleAddMonth(${m},this)">${mn}</div>`;
+  }).join('');
+}
+function toggleAddMonth(m, el){
+  if(addSelectedMonths.has(m)){ addSelectedMonths.delete(m); el.classList.remove('active'); }
+  else { addSelectedMonths.add(m); el.classList.add('active'); }
+}
+function previewAdd(){
+  const amt=+document.getElementById('fDv').value||0;
+  const freq=+document.getElementById('fFreq').value||1;
+  const el=document.getElementById('fPreview');
+  if(amt>0){ el.style.display='block'; el.innerHTML=`연 배당: <b>${(amt*freq).toLocaleString()}원</b> = ${amt.toLocaleString()}원 × ${freq}회`; }
+  else el.style.display='none';
+}
+
+/* ── 자동 목표 ── */
+/* [Fix #9] alert → toast */
+function autoTarget(mode){
+  const ds=stocks.filter(s=>s.type==='dividend'&&yearDiv(s)>0);
+  if(!ds.length){ toast('배당주가 없습니다.','var(--ye)'); return; }
+  const yg=goals.yearly||12000000;
+  if(mode==='equal'){
+    const per=yg/ds.length;
+    ds.forEach(s=>{ s.target=yearDiv(s)>0?Math.ceil(per/yearDiv(s)):s.target; });
+  }else{
+    const ty=ds.reduce((a,s)=>a+yearDiv(s)/s.price, 0);
+    ds.forEach(s=>{ const w=(yearDiv(s)/s.price)/ty; s.target=yearDiv(s)>0?Math.ceil(yg*w/yearDiv(s)):s.target; });
+  }
+  save(); updDash(); rendTargetList();
+  toast(`✅ 목표 수량 설정 완료 (${ds.length}종목)`);
+}
+
+/* ── 대시보드 ── */
+function updDash(){
+  updNums();
+  calcThisMonth();
+  const ds=stocks.filter(s=>s.type==='dividend');
+  const tY=ds.reduce((a,s)=>a+yearDiv(s)*s.qty, 0);
+  rendStockCards(ds, tY);
+}
+
+/* [Fix #13] 진행바 색상 동적 변경 */
+function updNums(){
+  const ds=stocks.filter(s=>s.type==='dividend');
+  const tY=ds.reduce((a,s)=>a+yearDiv(s)*s.qty, 0), tM=tY/12;
+  const yg=goals.yearly||12000000, p=pct(tY,yg);
+  const totCost=ds.reduce((a,s)=>a+s.price*s.qty, 0);
+  const avgY=totCost>0?(tY/totCost*100):0;
+
+  document.getElementById('heroVal').textContent=fw(tY);
+  document.getElementById('heroSub').textContent=`월 평균 ${fw(tM)} · 달성률 ${p.toFixed(1)}%`;
+  document.getElementById('heroGoal').textContent=fw(yg);
+
+  const bar=document.getElementById('pgFill');
+  bar.style.width=p+'%';
+  bar.className='pf '+(p>=80?'high':p>=40?'mid':'low');
+
+  document.getElementById('ppBar').textContent=p.toFixed(1)+'%';
+  document.getElementById('ppBar').style.color=p>=80?'var(--gr)':p>=40?'var(--ye)':'var(--ac)';
+
+  document.getElementById('avgMonth').textContent=fw(tM);
+  document.getElementById('totCost').textContent=fw(totCost);
+  document.getElementById('avgYield').textContent=avgY.toFixed(2)+'%';
+  document.getElementById('hdrPct').textContent=p.toFixed(1)+'%';
+  document.getElementById('hdrAmt').textContent='연 '+fw(tY);
+}
+
+/* ── 종목 카드 렌더 ── */
+function rendStockCards(ds, tY){
+  const el=document.getElementById('stockCards');
+  if(!ds.length){ el.innerHTML=`<div class="empty"><div class="empty-ic">📊</div><div class="empty-tx">아래에서 종목을 추가해주세요</div></div>`; return; }
+  const sorted=[...ds].sort((a,b)=>{
+    const pa=a.target>0?pct(a.qty,a.target):101, pb=b.target>0?pct(b.qty,b.target):101; return pa-pb;
+  });
+  el.innerHTML=sorted.map(s=>renderCard(s,tY)).join('');
+}
+
+function renderCard(s, tY){
+  const freq=s.freq||1, fi=FREQ[freq];
+  const yD=yearDiv(s);
+  const onePayTotal=s.divAmt*s.qty;
+  const annualTotal=yD*s.qty;
+  const yr=(yD/s.price*100).toFixed(2);
+  const tp=s.target>0?pct(s.qty,s.target):null;
+  const tpColor=tp===null?'#a78bfa':tp>=80?'var(--gr)':tp>=40?'var(--ye)':'var(--ac)';
+  const fc=tp===null?'mf-pu':tp>=80?'mf-g':tp>=40?'mf-y':'mf-b';
+  const need=s.target>0?Math.max(0,s.target-s.qty):null;
+  const tmPay=isThisMonth(s)&&s.qty>0&&s.divAmt>0;
+
+  /* [추가 #11] 다음 배당월 */
+  const nextM=nextDivMonth(s);
+  const nextBadge=(!tmPay&&nextM)?`<span class="next-div-badge">다음 배당: ${MN[nextM-1]}</span>`:'';
+
+  const payLabel=freq===12?'매달 수령':freq===4?'분기 수령':freq===2?'반기 수령':'연간 수령';
+  let stats='';
+  if(freq===12){
+    stats=`<div class="sc-stats c3">
+      <div class="st"><span class="sl">주가</span><span class="sv">${fw(s.price)}</span></div>
+      <div class="st hl${tmPay?'-gr':''}"><span class="sl">${payLabel}</span><span class="sv">${fw(onePayTotal)}</span></div>
+      <div class="st"><span class="sl">연수익률</span><span class="sv">${yr}%</span></div>
+    </div>`;
+  }else{
+    stats=`<div class="sc-stats c4">
+      <div class="st"><span class="sl">주가</span><span class="sv">${fw(s.price)}</span></div>
+      <div class="st hl${tmPay?'-gr':''}"><span class="sl">${payLabel}</span><span class="sv">${fw(onePayTotal)}</span></div>
+      <div class="st"><span class="sl">연간 합계</span><span class="sv">${fw(annualTotal)}</span></div>
+      <div class="st"><span class="sl">연수익률</span><span class="sv">${yr}%</span></div>
+    </div>`;
+  }
+
+  const timing=`<div class="div-timing ${fi.cls}">${fi.desc} · 1주당 ${s.divAmt.toLocaleString()}원 · 연 ${yD.toLocaleString()}원</div>`;
+
+  /* [Fix #10] 편집 패널에 배당월 선택 추가 */
+  const monthChips=MN.map((mn,i)=>{
+    const m=i+1;
+    const active=s.divMonths&&s.divMonths.includes(m)?'active':'';
+    return`<div class="month-chip ${active}" onclick="toggleMonth(${s.id},${m},this)">${mn}</div>`;
+  }).join('');
+
+  const monthPickerHtml=freq!==12?`
+    <div style="margin-bottom:8px;">
+      <span class="ep-lbl">📆 배당 지급월</span>
+      <div class="month-grid">${monthChips}</div>
+    </div>`:'';
+
+  return`<div class="sc an" id="sc_${s.id}">
+    <div class="sc-top" onclick="toggleEdit(${s.id})">
+      <div>
+        <div class="sc-name">${s.name}
+          <span class="freq-tag ${fi.tag}">${fi.label}</span>
+          ${tmPay?`<span class="this-month-badge">이번달 지급</span>`:''}
+        </div>
+        <span class="sc-tk">${s.ticker}</span>
+        ${nextBadge}
+      </div>
+      <div>
+        ${tp!==null
+          ?`<div class="sc-pct" style="color:${tpColor}">${tp.toFixed(0)}%</div><div class="sc-qty">${s.qty}/${s.target}주</div>`
+          :`<div style="font-size:.63rem;color:#a78bfa;text-align:right;">목표 미설정</div>`}
+      </div>
+    </div>
+    ${stats}${timing}
+    ${s.target>0
+      ?`<div class="tg-row"><span>목표 ${tp.toFixed(0)}% (${s.qty}/${s.target}주)</span>
+         <span style="color:${need>0?'var(--ye)':'var(--gr)'};">${need>0?need+'주 남음':'✅'}</span></div>
+         <div class="mb"><div class="mf ${fc}" style="width:${tp}%"></div></div>`:''}
+
+    <div class="ep" id="ep_${s.id}">
+      <div class="ep-grid">
+        <div><span class="ep-lbl">📈 현재 주가 (원)</span>
+          <input class="ep-input" type="number" id="ei_price_${s.id}" value="${s.price}"
+            oninput="lu(${s.id},'price',this.value)" onchange="flash(${s.id})"></div>
+        <div><span class="ep-lbl">📦 보유 수량 (주)</span>
+          <input class="ep-input" type="number" id="ei_qty_${s.id}" value="${s.qty}"
+            oninput="lu(${s.id},'qty',this.value)" onchange="flash(${s.id})"></div>
+      </div>
+      <div class="div-sec">
+        <div class="div-sec-title">💸 받을 배당금</div>
+        <div class="div-row">
+          <div style="flex:1;"><span class="ep-lbl">1주당 배당금 (원)</span>
+            <input class="ep-input" type="number" id="ei_div_${s.id}" value="${s.divAmt}"
+              oninput="luDiv(${s.id})" onchange="flash(${s.id})"></div>
+          <div style="width:108px;"><span class="ep-lbl">지급 주기</span>
+            <select class="ep-sel" id="ei_freq_${s.id}" onchange="luDiv(${s.id});flash(${s.id})">
+              <option value="1"  ${freq===1?'selected':''}>연 1회</option>
+              <option value="2"  ${freq===2?'selected':''}>반기 (연2)</option>
+              <option value="4"  ${freq===4?'selected':''}>분기 (연4)</option>
+              <option value="12" ${freq===12?'selected':''}>월배당</option>
+            </select></div>
+        </div>
+        <div class="div-calc" id="dc_${s.id}">연 배당: <b>${yD.toLocaleString()}원</b> = ${s.divAmt.toLocaleString()}원 × ${freq}회</div>
+      </div>
+      ${monthPickerHtml}
+      <div style="margin-bottom:8px;"><span class="ep-lbl">🎯 목표 수량 (주)</span>
+        <input class="ep-input" type="number" id="ei_tg_${s.id}" value="${s.target||''}" placeholder="미설정"
+          oninput="lu(${s.id},'target',this.value)" onchange="flash(${s.id})"></div>
+      <div class="ep-footer">
+        <span class="saved" id="sf_${s.id}">✅ 저장됨</span>
+        <button class="btn-del" onclick="delStock(${s.id});event.stopPropagation()">종목 삭제</button>
+      </div>
+      <div class="ep-hint">💡 입력하면 자동 저장 · 탭 다시 누르면 닫힘</div>
+    </div>
+  </div>`;
+}
+
+/* [Fix #10] 배당월 토글 */
+function toggleMonth(id, m, el){
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  if(!s.divMonths) s.divMonths=[];
+  if(s.divMonths.includes(m)){ s.divMonths=s.divMonths.filter(x=>x!==m); el.classList.remove('active'); }
+  else { s.divMonths.push(m); s.divMonths.sort((a,b)=>a-b); el.classList.add('active'); }
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ save(); calcThisMonth(); },300);
+}
+
+function toggleEdit(id){
+  const panel=document.getElementById(`ep_${id}`);
+  const card=document.getElementById(`sc_${id}`);
+  const isOpen=panel.classList.contains('open');
+  document.querySelectorAll('.ep.open').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.sc.editing').forEach(c=>c.classList.remove('editing'));
+  if(!isOpen){ panel.classList.add('open'); card.classList.add('editing');
+    setTimeout(()=>{ const f=panel.querySelector('input'); if(f) f.focus(); },100); }
+}
+
+let saveTimer=null;
+function lu(id, field, val){
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  s[field]=parseFloat(val)||0;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ save(); updNums(); calcThisMonth(); }, 350);
+}
+function luDiv(id){
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  const amt=parseFloat(document.getElementById(`ei_div_${id}`).value)||0;
+  const freq=parseInt(document.getElementById(`ei_freq_${id}`).value)||1;
+  s.divAmt=amt; s.freq=freq;
+  const dc=document.getElementById(`dc_${id}`);
+  if(dc&&amt>0) dc.innerHTML=`연 배당: <b>${(amt*freq).toLocaleString()}원</b> = ${amt.toLocaleString()}원 × ${freq}회`;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ save(); updNums(); calcThisMonth(); }, 350);
+}
+
+/* [Fix #3] flash - outerHTML 교체 후 한 틱 뒤에 저장 플래시 */
+function flash(id){
+  const ds=stocks.filter(s=>s.type==='dividend');
+  const tY=ds.reduce((a,s)=>a+yearDiv(s)*s.qty, 0);
+  const s=stocks.find(x=>x.id===id);
+  if(s){
+    const oldCard=document.getElementById(`sc_${id}`);
+    if(oldCard){
+      const wasOpen=oldCard.querySelector('.ep')?.classList.contains('open');
+      oldCard.outerHTML=renderCard(s, tY);
+      if(wasOpen){
+        document.getElementById(`ep_${id}`)?.classList.add('open');
+        document.getElementById(`sc_${id}`)?.classList.add('editing');
+      }
+    }
+  }
+  /* [Fix #3] setTimeout으로 새 DOM에 show 클래스 부착 */
+  setTimeout(()=>{
+    const sfEl=document.getElementById(`sf_${id}`);
+    if(sfEl){ sfEl.classList.add('show'); setTimeout(()=>sfEl.classList.remove('show'), 1500); }
+  }, 30);
+}
+
+function delStock(id){
+  if(!confirm('이 종목을 삭제할까요?')) return;
+  stocks=stocks.filter(s=>s.id!==id);
+  save(); updDash();
+}
+
+/* ── 종목 추가 폼 접기/펼치기 ── */
+function toggleAddForm(forceOpen){
+  const body=document.getElementById('addFormBody');
+  const btn=document.getElementById('addFormToggleBtn');
+  const icon=document.getElementById('addFormToggleIcon');
+  if(!body) return;
+  const isOpen=body.style.display!=='none';
+  const willOpen=forceOpen===true?true:forceOpen===false?false:!isOpen;
+
+  if(willOpen){
+    body.style.display='block';
+    if(icon) icon.textContent='✕';
+    if(btn){ btn.style.background='rgba(239,68,68,.08)'; btn.style.borderColor='rgba(239,68,68,.25)'; btn.style.color='var(--re)'; }
+    // 폼이 화면에 보이도록 스크롤
+    setTimeout(()=>{
+      const wrap=document.getElementById('addFormWrap');
+      if(wrap) wrap.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 50);
+  } else {
+    body.style.display='none';
+    if(icon) icon.textContent='➕';
+    if(btn){ btn.style.background='rgba(0,212,255,.08)'; btn.style.borderColor='rgba(0,212,255,.3)'; btn.style.color='var(--ac)'; }
+  }
+}
+function addStock(){
+  const nm=document.getElementById('fNm').value.trim();
+  if(!nm){ toast('종목명은 필수입니다.','var(--ye)'); return; }
+  const freq=+document.getElementById('fFreq').value||4;
+  let divMonths=[];
+  if(freq===12){ for(let i=1;i<=12;i++) divMonths.push(i); }
+  else { divMonths=[...addSelectedMonths].sort((a,b)=>a-b); }
+  const ns={id:Date.now(), name:nm,
+    ticker:document.getElementById('fTk').value.trim()||'',
+    price:+document.getElementById('fPr').value||0,
+    qty:+document.getElementById('fQt').value||0,
+    divAmt:+document.getElementById('fDv').value||0,
+    freq, divMonths,
+    target:+document.getElementById('fTg').value||0,
+    type:'dividend'};
+  stocks.push(ns);
+  save(); updDash();
+  ['fNm','fTk','fPr','fQt','fDv','fTg'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('fPreview').style.display='none';
+  addSelectedMonths.clear();
+  renderAddMonthPicker();
+  toggleAddForm(false); // 추가 후 폼 닫기
+  toast('✅ 종목 추가 완료!');
+  setTimeout(()=>toggleEdit(ns.id), 200);
+}
+
+/* ── 목표 탭 ── */
+
+/* 최적 포트폴리오 플랜 계산 (월 배당 기준) */
+function calcOptimalPlan(mode){
+  const ds=stocks.filter(s=>s.type==='dividend'&&yearDiv(s)>0&&s.price>0);
+  if(!ds.length){ toast('배당주를 먼저 추가해주세요.','var(--ye)'); return; }
+
+  // 버튼 클릭 시점의 입력 필드 값을 직접 읽어 goals와 동기화
+  const inputVal=+document.getElementById('gM').value||0;
+  if(inputVal>0 && inputVal!==goals.monthly){
+    goals.monthly=inputVal;
+    goals.yearly=inputVal*12;
+    const gYel=document.getElementById('gY');
+    if(gYel) gYel.value=goals.yearly;
+    saveG(); updNums();
+    const al=document.getElementById('autoGoalLabel');
+    if(al) al.textContent=inputVal.toLocaleString()+'원';
+  }
+
+  const mg=goals.monthly||1000000;
+  const curM=ds.reduce((a,s)=>a+(yearDiv(s)*s.qty)/12, 0);
+  const shortM=Math.max(0,mg-curM);
+
+  const items=ds.map(s=>{
+    const yD=yearDiv(s);
+    const mDperShare=yD/12;
+    // 실제 1회 지급 기준 수익률: divAmt(1회배당) ÷ price
+    const yieldRate=s.divAmt/s.price;
+    return{...s, yD, mDperShare, yieldRate};
+  });
+
+  let plan=[];
+
+  if(mode==='yield'){
+    // 수익률 우선: divAmt/price 효율 높은 순
+    const sorted=[...items].sort((a,b)=>b.yieldRate-a.yieldRate);
+    let remaining=shortM; // 남은 월 부족분
+    sorted.forEach(s=>{
+      if(remaining<=0){ plan.push({id:s.id, addQty:0}); return; }
+      // 월 부족분 → 이 종목의 1회 지급 시점 기준으로 환산
+      // 월 목표 ÷ 연 지급 횟수 = 1회당 목표
+      const targetPerPayment=remaining/s.freq; // 1회에 받아야 할 목표금액
+      const curPerPayment=s.divAmt*s.qty;      // 현재 1회 수령액
+      const shortPerPayment=Math.max(0,targetPerPayment-curPerPayment);
+      const needFull=shortPerPayment>0?Math.ceil(shortPerPayment/s.divAmt):0;
+      plan.push({id:s.id, addQty:needFull});
+      remaining-=needFull*s.mDperShare; // 월 평균 기여분 차감
+    });
+  } else {
+    // 균형 배분: 수익률 비중으로 월 목표 분배
+    const totalYield=items.reduce((a,s)=>a+s.yieldRate, 0);
+    items.forEach(s=>{
+      const weight=s.yieldRate/totalYield;
+      const myMonthGoal=mg*weight;
+      // 1회 지급 시점 목표 = 월 목표 ÷ 연 지급 횟수
+      const myPaymentGoal=myMonthGoal/s.freq;
+      const curPerPayment=s.divAmt*s.qty;
+      const shortPerPayment=Math.max(0,myPaymentGoal-curPerPayment);
+      const addQty=shortPerPayment>0?Math.ceil(shortPerPayment/s.divAmt):0;
+      plan.push({id:s.id, addQty});
+    });
+  }
+
+  // [BugFix] target 업데이트:
+  // - addQty > 0: 이 플랜의 새 목표를 target에 반영 (단, 기존 target이 더 높으면 유지)
+  // - addQty = 0: 기존 target 절대 변경 안 함 (이미 달성이든 미설정이든)
+  plan.forEach(p=>{
+    const s=stocks.find(x=>x.id===p.id);
+    if(!s||p.addQty===0) return;
+    const newTarget=s.qty+p.addQty;
+    s.target=Math.max(s.target||0, newTarget);
+  });
+  save(); updNums();
+
+  rendPlanResult(plan, items, mg, curM, shortM);
+  rendTargetList();
+}
+
+function rendPlanResult(plan, items, mg, curM, shortM){
+  const el=document.getElementById('targetPlan');
+  if(!el) return;
+
+  const buyList=plan
+    .filter(p=>p.addQty>0)
+    .map(p=>({...p, s:items.find(x=>x.id===p.id)}))
+    .sort((a,b)=>b.s.yieldRate-a.s.yieldRate);
+
+  const totalAddCost=buyList.reduce((a,p)=>a+p.addQty*p.s.price, 0);
+  const totalAddM=buyList.reduce((a,p)=>a+p.addQty*p.s.mDperShare, 0);
+  const newM=curM+totalAddM;
+  const newPct=pct(newM, mg);
+
+  // 이유 생성
+  const reasons=buyList.map((p,i)=>{
+    const s=p.s;
+    const yr=(s.yieldRate*100).toFixed(2);
+    const parts=[];
+    if(i===0) parts.push(`<b>배당수익률 ${yr}%</b>로 가장 효율적`);
+    else parts.push(`배당수익률 ${yr}%`);
+    if(s.price<30000) parts.push('소액 분할매수 유리');
+    if(s.freq===12) parts.push('매달 현금흐름 발생');
+    if(s.freq===2||s.freq===1) parts.push('한 번에 큰 금액 지급');
+    return parts.join(' · ');
+  });
+
+  let h='';
+
+  // 요약 카드
+  h+=`<div class="plan-summary an">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div>
+        <div style="font-size:.6rem;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">월 배당 목표 달성률</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${newPct.toFixed(0)}%</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:.6rem;color:var(--mu);margin-bottom:3px;">달성 후 월 배당</div>
+        <div class="plan-total-val">${fw(newM)}</div>
+        <div style="font-size:.6rem;color:var(--mu);margin-top:2px;">목표 ${fw(mg)}/월</div>
+      </div>
+    </div>
+    <div class="mb" style="margin-bottom:10px;height:8px;">
+      <div class="mf ${newPct>=80?'mf-g':newPct>=40?'mf-y':'mf-b'}" style="width:${Math.min(newPct,100)}%;transition:width .6s;"></div>
+    </div>
+    <div class="plan-summary-row">
+      <span class="plan-total-lbl">현재 월 평균 배당</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;color:var(--mu)">${fw(curM)}</span>
+    </div>
+    <div class="plan-summary-row">
+      <span class="plan-total-lbl">추가 월 배당</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;color:var(--gr)">+${fw(totalAddM)}</span>
+    </div>
+    <div class="plan-summary-row">
+      <span class="plan-total-lbl">총 추가 투자금</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;color:var(--ye)">${ff(totalAddCost)}</span>
+    </div>
+    <div class="plan-summary-row">
+      <span class="plan-total-lbl">70만원/월 기준</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;color:var(--ac)">${Math.ceil(totalAddCost/700000)}개월</span>
+    </div>
+  </div>`;
+
+  // [BugFix] doneList: 추가 매수 불필요 종목
+  const doneList=plan
+    .filter(p=>p.addQty===0)
+    .map(p=>({...p, s:items.find(x=>x.id===p.id)}));
+
+  if(buyList.length===0){
+    h+=`<div class="hl an"><div class="hl-t">🎉 이미 목표 달성!</div><div class="hl-m">현재 보유로 월 ${fw(mg)} 달성!</div></div>`;
+  } else {
+    // 이미 충분한 종목 안내
+    if(doneList.length>0){
+      h+=`<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:11px;padding:10px 13px;margin-bottom:10px;">
+        <div style="font-size:.63rem;color:var(--gr);font-weight:700;margin-bottom:6px;">✅ 추가 매수 불필요</div>
+        ${doneList.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:.7rem;">
+          <span>${p.s.name}</span>
+          <span style="color:var(--gr);font-family:'JetBrains Mono',monospace;font-weight:600;">현재 기여 ${fw(p.s.mDperShare*p.s.qty)}/월 ✅</span>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    h+=`<div class="dv">매수 우선순위</div>`;
+    buyList.forEach((p,i)=>{
+      const s=p.s, rank=i+1;
+      const rankCls=rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
+      const priCls=rank===1?'pri-1':rank===2?'pri-2':rank===3?'pri-3':'pri-other';
+      const priLabel=rank===1?'🥇 1순위':rank===2?'🥈 2순위':rank===3?'🥉 3순위':`${rank}순위`;
+      const cost=p.addQty*s.price;
+      const addM=p.addQty*s.mDperShare;
+      const fi=FREQ[s.freq||1];
+      // [BugFix] 달성률은 이 플랜의 새 목표(qty+addQty) 기준으로 계산
+      const planTarget=s.qty+p.addQty;
+      const curTp=pct(s.qty, planTarget);
+      const fc=curTp>=80?'mf-g':curTp>=40?'mf-y':'mf-b';
+
+      h+=`<div class="plan-item ${rankCls} an">
+        <div class="plan-item-head">
+          <div>
+            <div class="plan-item-name">${s.name} <span class="freq-tag ${fi.tag}">${fi.label}</span></div>
+            <div style="font-size:.61rem;color:var(--mu);margin-top:2px;">현재 ${s.qty}주 → 목표 ${planTarget}주 (+${p.addQty}주)</div>
+          </div>
+          <span class="plan-item-priority ${priCls}">${priLabel}</span>
+        </div>
+        <div class="plan-stats">
+          <div class="plan-stat ac"><span class="sl">추가 매수</span><span class="sv">${p.addQty}주</span></div>
+          <div class="plan-stat"><span class="sl">투자 금액</span><span class="sv">${fw(cost)}</span></div>
+          <div class="plan-stat gr"><span class="sl">월배당 증가</span><span class="sv">+${fw(addM)}</span></div>
+        </div>
+        <div style="font-size:.62rem;color:var(--mu);background:var(--sur2);border-radius:7px;padding:5px 8px;margin-bottom:6px;">
+          실제 지급: ${fi.label} <b style="color:var(--tx)">${fw(s.divAmt*p.addQty)}/회</b> · 연 <b style="color:var(--tx)">${fw(s.yD*p.addQty)}</b>
+        </div>
+        <div class="plan-bar-wrap">
+          <div class="plan-bar-info">
+            <span>현재 ${s.qty}주 / 목표 ${planTarget}주 (${curTp.toFixed(0)}%)</span>
+            <span style="color:var(--ye)">${p.addQty}주 필요</span>
+          </div>
+          <div class="mb"><div class="mf ${fc}" style="width:${curTp}%"></div></div>
+        </div>
+        <div class="plan-reason">💡 ${reasons[i]}</div>
+      </div>`;
+    });
+
+    // 단계별 시나리오
+    h+=`<div class="dv">단계별 매수 시나리오</div>`;
+    h+=`<div class="tc-card an"><div class="tc-hdr">📅 70만원/월 기준 순서대로</div>`;
+    let cumCost=0, cumM_acc=0, cumMonthAvg=curM;
+    buyList.forEach((p,i)=>{
+      const s=p.s;
+      const cost=p.addQty*s.price;
+      cumCost+=cost;
+      const months=Math.ceil(cost/700000);
+      cumM_acc+=months;
+      cumMonthAvg+=p.addQty*s.mDperShare;
+      h+=`<div class="sim-row">
+        <div>
+          <div class="sim-lbl">${i+1}단계 · ${s.name}</div>
+          <div class="sim-sub">${p.addQty}주 · ${ff(cost)} · 약 ${months}개월</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="sim-val" style="font-size:.78rem;color:${i===0?'var(--ac)':i===1?'var(--gr)':'var(--ye)'};">누적 ${cumM_acc}개월</div>
+          <div style="font-size:.6rem;color:var(--gr);">월평균 ${fw(cumMonthAvg)}</div>
+        </div>
+      </div>`;
+    });
+    h+=`<div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--bdr);font-size:.64rem;color:var(--mu);">
+      총 <span style="color:var(--ac);font-weight:700">${ff(totalAddCost)}</span> · 
+      70만원 <span style="color:var(--ye);font-weight:700">${Math.ceil(totalAddCost/700000)}개월</span> · 
+      100만원 <span style="color:var(--gr);font-weight:700">${Math.ceil(totalAddCost/1000000)}개월</span>
+    </div></div>`;
+  }
+
+  el.innerHTML=h;
+}
+
+/* 목표 탭 종목 카드 - 이번달 기준, 투자금 적은 순 정렬 */
+function rendTargetList(){
+  const el=document.getElementById('targetList');
+  const ds=stocks.filter(s=>s.type==='dividend');
+  if(!ds.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">🎯</div><div class="empty-tx">현황 탭에서 종목을 추가해주세요</div></div>`;
+    return;
+  }
+
+  const mg=goals.monthly||1000000;
+  const nowMonth=new Date().getMonth()+1;
+
+  // ── 각 종목 계산 ──
+  const items=ds.map(s=>{
+    const yD=yearDiv(s);
+    const mDperShare=yD/12;
+    const fi=FREQ[s.freq||1];
+
+    // 이번달 지급 여부
+    const paysThisMonth=isThisMonth(s)&&s.divAmt>0;
+
+    // 이번달 현재 수령액 (1회 실제 지급액)
+    const curThisMonth=paysThisMonth?s.divAmt*s.qty:0;
+
+    // 이번달 목표: 월 목표 ÷ 연 지급 횟수 = 1회당 받아야 할 금액
+    // 예) 월 5만원, 반기(2회) → 1회 목표 = 25,000원
+    // 예) 월 5만원, 월배당(12회) → 1회 목표 = 50,000원
+    const paymentGoal=paysThisMonth?mg/s.freq:null;
+    const shortThisMonth=paymentGoal!==null?Math.max(0,paymentGoal-curThisMonth):null;
+
+    // 이번달 목표 달성을 위해 추가로 필요한 주수
+    const needShares=shortThisMonth>0&&s.divAmt>0
+      ?Math.ceil(shortThisMonth/s.divAmt):0;
+    const needCost=needShares*s.price;
+
+    // 효율: 1만원 투자 당 이번달 배당 증가 (이번달 지급 종목만 의미 있음)
+    const efficiency=paysThisMonth&&s.price>0?(s.divAmt/s.price*10000):0;
+
+    const curContrib=(yD*s.qty)/12; // 월 평균 기여 (표시용)
+    const tp=s.target>0?pct(s.qty,s.target):null;
+    const need=s.target>0?Math.max(0,s.target-s.qty):null;
+    const fc=tp===null?'mf-pu':tp>=80?'mf-g':tp>=40?'mf-y':'mf-b';
+    const tgtContrib=s.target>0?(yD*s.target)/12:null;
+
+    return{s, yD, mDperShare, fi, paysThisMonth,
+           curThisMonth, paymentGoal, shortThisMonth, needShares, needCost,
+           efficiency, curContrib, tp, need, fc, tgtContrib};
+  });
+
+  // ── 정렬 ──
+  const sorted=[...items].sort((a,b)=>{
+    const aDone=a.paysThisMonth&&a.shortThisMonth!==null&&a.shortThisMonth<=0;
+    const bDone=b.paysThisMonth&&b.shortThisMonth!==null&&b.shortThisMonth<=0;
+    const aNoThis=!a.paysThisMonth, bNoThis=!b.paysThisMonth;
+    if(aDone&&!bDone) return 1;
+    if(!aDone&&bDone) return -1;
+    if(!aNoThis&&bNoThis) return -1;
+    if(aNoThis&&!bNoThis) return 1;
+    if(!aNoThis&&!bNoThis){
+      if(a.needShares===0&&b.needShares>0) return 1;
+      if(a.needShares>0&&b.needShares===0) return -1;
+      return a.needCost-b.needCost;
+    }
+    return b.efficiency-a.efficiency;
+  });
+
+  // ── 이번달 현황 배너 ──
+  const thisMonthItems=items.filter(i=>i.paysThisMonth);
+  const curThisMonthTotal=thisMonthItems.reduce((a,i)=>a+i.curThisMonth,0);
+  // 이번달 합산 목표: 각 종목의 paymentGoal 합산
+  const goalThisMonthTotal=thisMonthItems.reduce((a,i)=>a+(i.paymentGoal||0),0);
+  const shortTotal=Math.max(0,goalThisMonthTotal-curThisMonthTotal);
+
+  let h='';
+  if(thisMonthItems.length===0){
+    h+=`<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:11px 13px;margin-bottom:10px;">
+      <div style="font-size:.72rem;color:var(--ye);font-weight:700;">📅 이번 달(${nowMonth}월)은 지급 종목 없음</div>
+      <div style="font-size:.62rem;color:var(--mu);margin-top:4px;">아래에서 배당월을 확인하거나 현황 탭에서 수정하세요</div>
+    </div>`;
+  } else if(shortTotal<=0){
+    h+=`<div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.22);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--gr);">🎉 이번 달 목표 달성!</div>
+          <div style="font-size:.62rem;color:var(--mu);margin-top:3px;">${nowMonth}월 수령 ${fw(curThisMonthTotal)}</div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gr);">100%</div>
+      </div>
+    </div>`;
+  } else {
+    const pct100=pct(curThisMonthTotal, goalThisMonthTotal);
+    h+=`<div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <div style="font-size:.63rem;color:var(--ac);font-weight:700;margin-bottom:3px;">📅 ${nowMonth}월 배당 현황</div>
+          <div style="font-size:.72rem;color:var(--mu);">이번달 수령 <b style="color:var(--tx)">${fw(curThisMonthTotal)}</b></div>
+          <div style="font-size:.62rem;color:var(--mu);margin-top:2px;">부족분 <b style="color:var(--re)">${fw(shortTotal)}</b></div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${pct100.toFixed(0)}%</div>
+      </div>
+      <div class="mb" style="height:7px;margin-bottom:7px;">
+        <div class="mf ${pct100>=80?'mf-g':pct100>=40?'mf-y':'mf-b'}" style="width:${Math.min(pct100,100)}%;"></div>
+      </div>
+      <div style="font-size:.62rem;color:var(--mu);">⬇️ <b style="color:var(--ac)">투자금 적은 순</b> · 위 종목부터 사면 ${nowMonth}월 목표 가장 빠르게 달성</div>
+    </div>`;
+  }
+
+  // ── 종목 카드 ──
+  let rankCount=0;
+  sorted.forEach((item)=>{
+    const{s, yD, mDperShare, fi, paysThisMonth,
+          curThisMonth, shortThisMonth, needShares, needCost,
+          efficiency, curContrib, tp, need, fc, tgtContrib}=item;
+
+    const isDone=paysThisMonth&&shortThisMonth!==null&&shortThisMonth<=0;
+    const isThisMonthStock=paysThisMonth;
+
+    let rank=null;
+    if(isThisMonthStock&&!isDone&&needShares>0){
+      rankCount++;
+      rank=rankCount;
+    }
+    const rankColor=rank===1?'var(--ac)':rank===2?'var(--gr)':rank===3?'var(--ye)':'var(--mu)';
+    const rankLabel=rank===1?'🥇 1순위':rank===2?'🥈 2순위':rank===3?'🥉 3순위':rank?`${rank}순위`:'';
+    const borderCol=isDone?'rgba(16,185,129,.3)':rank===1?'rgba(0,212,255,.25)':'var(--bdr)';
+
+    h+=`<div style="background:var(--sur);border:1px solid ${borderCol};border-radius:12px;padding:13px;margin-bottom:8px;${rank===1?'box-shadow:0 0 0 2px rgba(0,212,255,.07);':''}">
+
+      <!-- 헤더 -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;">
+        <div>
+          <div style="font-weight:700;font-size:.86rem;">${s.name}
+            <span class="freq-tag ${fi.tag}">${fi.label}</span>
+            ${rank?`<span style="font-size:.57rem;padding:2px 7px;border-radius:5px;font-weight:700;background:rgba(0,212,255,.12);color:${rankColor};margin-left:3px;">${rankLabel}</span>`:''}
+            ${isThisMonthStock?`<span class="this-month-badge" style="animation:none;">이번달 지급</span>`:''}
+          </div>
+          <div style="font-size:.59rem;color:var(--mu);margin-top:2px;">1주당 ${s.divAmt.toLocaleString()}원/${fi.label} · 수익률 ${(yD/s.price*100).toFixed(2)}% · 현재 ${s.qty}주</div>
+        </div>
+        <div style="text-align:right;">
+          ${tp!==null
+            ?`<div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.9rem;color:${tp>=100?'var(--gr)':tp>=40?'var(--ye)':'var(--ac)'};">${tp.toFixed(0)}%</div>
+               <div style="font-size:.58rem;color:var(--mu);">${s.qty}/${s.target}주</div>`
+            :`<div style="font-size:.61rem;color:#a78bfa;">목표 미설정</div>`}
+        </div>
+      </div>
+
+      <!-- 이번달 지급 종목: 목표 달성 안내 -->
+      ${isThisMonthStock?`
+      <div style="background:${rank===1?'rgba(0,212,255,.08)':isDone?'rgba(16,185,129,.06)':'var(--sur2)'};border:1px solid ${rank===1?'rgba(0,212,255,.2)':isDone?'rgba(16,185,129,.2)':'var(--bdr)'};border-radius:9px;padding:9px 11px;margin-bottom:8px;">
+        ${isDone
+          ?`<div style="font-size:.68rem;color:var(--gr);font-weight:700;">✅ 이번달 목표 달성</div>
+            <div style="font-size:.62rem;color:var(--mu);margin-top:3px;">${nowMonth}월 수령 <b style="color:var(--tx)">${fw(curThisMonth)}</b> ≥ 목표 ${fw(item.paymentGoal||0)}</div>`
+          :`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div>
+                <div style="font-size:.63rem;color:${rank===1?'var(--ac)':'var(--mu)'};font-weight:700;">
+                  💡 ${nowMonth}월 ${fw(item.paymentGoal||0)} 받으려면
+                </div>
+                <div style="font-size:.6rem;color:var(--mu);margin-top:1px;">현재 ${fw(curThisMonth)}/회 · 부족 <b style="color:var(--re)">${fw(item.shortThisMonth||0)}</b></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;">
+              <div style="background:var(--bg);border-radius:7px;padding:7px 4px;text-align:center;">
+                <span style="font-size:.51rem;color:var(--mu);display:block;margin-bottom:2px;">추가 매수</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;color:var(--ac);">${needShares}주</span>
+              </div>
+              <div style="background:var(--bg);border-radius:7px;padding:7px 4px;text-align:center;">
+                <span style="font-size:.51rem;color:var(--mu);display:block;margin-bottom:2px;">투자금</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;">${fw(needCost)}</span>
+              </div>
+              <div style="background:var(--bg);border-radius:7px;padding:7px 4px;text-align:center;">
+                <span style="font-size:.51rem;color:var(--mu);display:block;margin-bottom:2px;">1만원당 배당</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;color:var(--gr);">${fw(efficiency)}</span>
+              </div>
+            </div>`}
+      </div>`
+      :`<div style="background:var(--sur2);border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:.62rem;color:var(--mu);">
+        📅 이번달(${nowMonth}월) 지급 없음 · ${s.divMonths&&s.divMonths.length?`다음 지급: ${MN[(s.divMonths.find(m=>m>nowMonth)||s.divMonths[0])-1]}`:'배당월 미설정'}
+      </div>`}
+
+      <!-- 현재 기여 & 목표 수량 -->
+      <div style="display:flex;justify-content:space-between;font-size:.61rem;color:var(--mu);margin-bottom:4px;">
+        <span>월 평균 기여 <b style="color:var(--tx)">${fw(curContrib)}</b></span>
+        <span>월 목표 대비 <b style="color:${pct(curContrib,mg)>=20?'var(--gr)':pct(curContrib,mg)>=10?'var(--ye)':'var(--ac)'};">${pct(curContrib,mg).toFixed(1)}%</b></span>
+      </div>
+      <div style="margin-bottom:${tp!==null?'7':'0'}px;">
+        <span class="ep-lbl">🎯 목표 수량</span>
+        <input class="ep-input" type="number" value="${s.target||''}" placeholder="미설정"
+          oninput="luT(${s.id},'target',this.value)">
+      </div>
+      ${tp!==null?`
+      <div class="tg-row">
+        <span>목표달성 ${tp.toFixed(0)}% (${s.qty}/${s.target}주)</span>
+        <span style="color:${need>0?'var(--ye)':'var(--gr)'};">${need!==null?(need>0?need+'주 남음 · '+fw(need*s.price):'✅ 목표달성'):''}</span>
+      </div>
+      <div class="mb" style="margin-bottom:5px;"><div class="mf ${fc}" style="width:${tp}%"></div></div>
+      <div style="font-size:.59rem;color:var(--mu);">목표 달성 시 월평균 <span style="color:var(--gr);font-weight:600">${fw(tgtContrib)}</span>
+        · ${fi.label} <b style="color:var(--tx)">${fw(s.divAmt*s.target)}/회</b></div>`:''}
+    </div>`;
+  });
+
+  el.innerHTML=h;
+}
+function luT(id, field, val){
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  s[field]=parseFloat(val)||0;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ save(); updNums(); }, 350);
+}
+
+/* ── 투자 추천 ── */
+function calcRec(){
+  const el=document.getElementById('recOut');
+  const ds=stocks.filter(s=>s.type==='dividend'&&yearDiv(s)>0);
+  if(!ds.length){ el.innerHTML=`<div class="empty"><div class="empty-ic">💡</div><div class="empty-tx">종목을 추가해주세요</div></div>`; return; }
+  const mg=goals.monthly||1000000;
+  const tM=ds.reduce((a,s)=>a+(yearDiv(s)*s.qty)/12, 0);
+  const shM=Math.max(0,mg-tM); // 부족한 월 배당
+  let h='';
+  if(mg>0&&shM>0){
+    h+=`<div class="dv">목표까지 종목별 필요 수량</div><div class="tc-card"><div class="tc-hdr">📌 월 ${fw(shM)} 부족 → 각 종목 단독 달성 시</div>`;
+    [...ds].sort((a,b)=>(yearDiv(b)/b.price)-(yearDiv(a)/a.price)).forEach(s=>{
+      const fi=FREQ[s.freq||1], mDps=yearDiv(s)/12;
+      const need=mDps>0?Math.ceil(shM/mDps):null;
+      h+=`<div class="tc-row">
+        <div><div class="tc-nm">${s.name} <span class="freq-tag ${fi.tag}">${fi.label}</span></div>
+          <div class="tc-sb">월평균 기여 ${fw(mDps)}/주 · 수익률 ${(yearDiv(s)/s.price*100).toFixed(2)}%</div></div>
+        <div style="text-align:right">${need!==null
+          ?`<div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.88rem;color:#a78bfa;">${need.toLocaleString()}주</div><div style="font-size:.6rem;color:var(--mu)">${fw(need*s.price)}</div>`
+          :`<span style="color:var(--mu);font-size:.68rem">계산불가</span>`}
+        </div></div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`<div class="dv">이번 달 투자 추천</div>`;
+  if(!budget){
+    h+=`<div class="card" style="text-align:center;color:var(--mu);font-size:.76rem;padding:16px;">예산을 입력하면 최적 종목을 추천해드려요</div>`;
+  }else{
+    const scored=ds.map(s=>{
+      const dy=yearDiv(s)/s.price, gap=s.target>0?Math.max(0,1-s.qty/s.target):.5, can=Math.floor(budget/s.price);
+      const addM=can*(yearDiv(s)/12);
+      return{...s, dy, gap, score:dy*(0.5+gap), can, addM};
+    }).filter(s=>s.can>0).sort((a,b)=>b.score-a.score);
+    if(!scored.length){
+      h+=`<div class="card" style="text-align:center;color:var(--mu);font-size:.76rem;padding:16px;">예산으로 살 수 있는 종목이 없어요</div>`;
+    }else{
+      const best=scored[0], nM=tM+best.addM, nP=pct(nM,mg||1), rem=budget-best.can*best.price;
+      const fi=FREQ[best.freq||1];
+      h+=`<div class="hl an">
+        <div class="hl-t">✨ 핵심 추천</div>
+        <div class="hl-m"><span class="ha">${best.name}</span>을 <span class="ha">${best.can}주</span> 매수</div>
+        <div class="hl-s">
+          → 월 배당 평균 <span class="hg">+${fw(best.addM)}</span> 증가 (${fi.label} ${fw(best.divAmt*best.can)}/회)<br>
+          ${mg>0?`→ 목표 달성률 <span class="ha">${nP.toFixed(1)}%</span>로 상승<br>`:''}
+          → 투자금 <span class="hy">${fw(best.can*best.price)}</span>${rem>0?` · 잔여 <span class="hp">${fw(rem)}</span>`:''}
+          ${best.target>0?`<br>→ 목표까지 ${Math.max(0,best.target-best.qty-best.can)}주 남음`:''}
+        </div>
+      </div>`;
+      h+=`<div class="rb-box an"><div class="rb-hdr"><span>효율 순위</span><span style="color:var(--mu);font-size:.6rem">${ff(budget)} 기준</span></div>`;
+      scored.slice(0,6).forEach((s,i)=>{
+        const rc=['rr1','rr2','rr3','','',''][i]||'', fi2=FREQ[s.freq||1];
+        h+=`<div class="rb-row"><div class="rb-rank ${rc}">${i+1}</div>
+          <div class="rb-info"><div class="rb-nm">${s.name} <span class="freq-tag ${fi2.tag}">${fi2.label}</span></div>
+            <div class="rb-sb">수익률 ${(s.dy*100).toFixed(2)}% · ${s.target>0?pct(s.qty,s.target).toFixed(0)+'% 달성':'목표 미설정'}</div></div>
+          <div class="rb-right"><div class="rb-cnt">${s.can}주</div><div class="rb-cost">${fw(s.can*s.price)}</div><div class="rb-gain">월평균+${fw(s.addM)}</div></div>
+        </div>`;
+      });
+      h+=`</div>`;
+      if(mg>0&&shM>0){
+        const b2=scored[0], mDps2=yearDiv(b2)/12, nSh=mDps2>0?Math.ceil(shM/mDps2):0, tc=nSh*b2.price;
+        const m7=Math.ceil(tc/700000), m10=Math.ceil(tc/1000000);
+        h+=`<div class="dv">목표까지 예상 기간</div>
+        <div class="tc-card an"><div class="tc-hdr">📅 ${b2.name} 집중투자</div>
+          <div class="sim-row"><div><div class="sim-lbl">70만원/월</div></div><div class="sim-val hp">${m7}개월</div></div>
+          <div class="sim-row"><div><div class="sim-lbl">100만원/월</div></div><div class="sim-val hg">${m10}개월 <span style="font-size:.6rem;color:var(--mu)">(${Math.max(0,m7-m10)}개월 단축)</span></div></div>
+        </div>`;
+      }
+    }
+  }
+  el.innerHTML=h;
+}
+
+/* ── 리밸런싱 ── */
+function calcRebal(){
+  const el=document.getElementById('rebalOut');
+  const ds=stocks.filter(s=>s.type==='dividend'&&yearDiv(s)>0);
+  if(!ds.length){ el.innerHTML=`<div class="empty"><div class="empty-ic">⚖️</div><div class="empty-tx">종목이 없습니다</div></div>`; return; }
+  const tY=ds.reduce((a,s)=>a+yearDiv(s)*s.qty,0), yg=goals.yearly||12000000;
+  const hasTg=ds.filter(s=>s.target>0), noTg=ds.filter(s=>s.target===0);
+  let h='';
+  if(noTg.length>0) h+=`<div class="alert-box">⚠️ <b>${noTg.map(s=>s.name).join(', ')}</b> 목표 수량 미설정<br>'목표' 탭 → 자동계산을 사용해보세요.</div>`;
+  h+=`<div class="dv">종목별 목표 달성률</div><div class="rb-box an"><div class="rb-hdr"><span>전체 현황</span><span style="color:var(--mu);font-size:.6rem">달성률 낮은 순</span></div>`;
+  [...ds].sort((a,b)=>{ const pa=a.target>0?pct(a.qty,a.target):200, pb=b.target>0?pct(b.qty,b.target):200; return pa-pb; }).forEach(s=>{
+    const tp=s.target>0?pct(s.qty,s.target):null, need=s.target>0?Math.max(0,s.target-s.qty):null;
+    const fc=tp===null?'mf-pu':tp>=80?'mf-g':tp>=40?'mf-y':'mf-b';
+    const fi=FREQ[s.freq||1], yD=yearDiv(s);
+    h+=`<div style="padding:11px 13px;border-bottom:1px solid var(--bdr);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div><div style="font-weight:700;font-size:.82rem;">${s.name} <span class="freq-tag ${fi.tag}">${fi.label}</span></div>
+          <div style="font-size:.61rem;color:var(--mu);">주가 ${fw(s.price)} · 연배당 ${ff(yD)}/주 · 수익률 ${(yD/s.price*100).toFixed(2)}%</div></div>
+        <div style="text-align:right;">
+          ${tp!==null
+            ?`<div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${tp>=80?'var(--gr)':tp>=40?'var(--ye)':'var(--ac)'};">${tp.toFixed(0)}%</div>
+               <div style="font-size:.59rem;color:var(--mu);">${s.qty}/${s.target}주</div>`
+            :`<div style="font-size:.63rem;color:#a78bfa;">목표 미설정</div>`}
+        </div>
+      </div>
+      <div class="mb" style="margin-bottom:4px;"><div class="mf ${fc}" style="width:${tp||5}%"></div></div>
+      <div style="font-size:.59rem;color:var(--mu);display:flex;justify-content:space-between;">
+        <span>${tp!==null?`목표 연배당 ${fw(yD*s.target)}`:'목표 미설정'}</span>
+        <span style="color:${need>0?'var(--ye)':need===0?'var(--gr)':'var(--mu)'};">${need!==null?(need>0?`${need}주 남음 · ${fw(need*s.price)}`:'✅ 달성'):''}</span>
+      </div>
+    </div>`;
+  });
+  h+=`</div>`;
+  const uf=[...hasTg].filter(s=>s.qty<s.target).sort((a,b)=>pct(a.qty,a.target)-pct(b.qty,b.target));
+  h+=`<div class="dv">리밸런싱 추천 순위</div>`;
+  if(uf.length===0&&hasTg.length>0){
+    h+=`<div class="hl"><div class="hl-t">🎉 모든 목표 달성!</div><div class="hl-m">설정한 목표 수량을 모두 채웠습니다</div></div>`;
+  }else if(uf.length>0){
+    h+=`<div class="rb-box an"><div class="rb-hdr"><span>우선 매수 추천</span><span style="color:var(--mu);font-size:.6rem">달성률 낮은 순</span></div>`;
+    uf.slice(0,5).forEach((s,i)=>{
+      const tp=pct(s.qty,s.target), need=s.target-s.qty, gainY=yearDiv(s)*need, rc=['rr1','rr2','rr3','',''][i]||'';
+      const fi=FREQ[s.freq||1];
+      h+=`<div class="rb-row"><div class="rb-rank ${rc}">${i+1}</div>
+        <div class="rb-info"><div class="rb-nm">${s.name} <span class="freq-tag ${fi.tag}">${fi.label}</span></div>
+          <div class="rb-sb">달성률 ${tp.toFixed(0)}% · ${s.qty}/${s.target}주 · 달성 시 연+${fw(gainY)}</div></div>
+        <div class="rb-right"><div class="rb-cnt">${need}주 필요</div><div class="rb-cost">${fw(need*s.price)}</div><div class="rb-gain">연+${fw(gainY)}</div></div>
+      </div>`;
+    });
+    h+=`</div>`;
+    const total=uf.reduce((a,s)=>a+(s.target-s.qty)*s.price, 0);
+    let cumC=0;
+    h+=`<div class="dv">단계별 달성 플랜</div><div class="tc-card an"><div class="tc-hdr">🗓️ 순서대로 목표 채우기</div>`;
+    uf.forEach((s,i)=>{ const need=s.target-s.qty, cost=need*s.price; cumC+=cost;
+      h+=`<div class="sim-row"><div><div class="sim-lbl">${i+1}단계 · ${s.name}</div><div class="sim-sub">${need}주 · ${ff(cost)}</div></div>
+        <div class="sim-val" style="font-size:.76rem;color:${i===0?'var(--ac)':i===1?'var(--gr)':'var(--ye)'};">누적 ${Math.ceil(cumC/700000)}개월</div></div>`;
+    });
+    h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr);font-size:.64rem;color:var(--mu);">
+      총 <span style="color:var(--ac);font-weight:700">${ff(total)}</span> · 
+      70만원 <span style="color:var(--ye);font-weight:700">${Math.ceil(total/700000)}개월</span> · 
+      100만원 <span style="color:var(--gr);font-weight:700">${Math.ceil(total/1000000)}개월</span>
+    </div></div>`;
+    if(hasTg.length>0){
+      const futY=hasTg.reduce((a,s)=>a+yearDiv(s)*s.target,0)+noTg.reduce((a,s)=>a+yearDiv(s)*s.qty,0);
+      h+=`<div class="dv">목표 달성 후 예상</div><div class="hl an">
+        <div class="hl-t">📊 목표 수량 전부 채웠을 때</div>
+        <div class="hl-m">연 배당 <span class="hg">${fw(futY)}</span></div>
+        <div class="hl-s">현재 ${fw(tY)} → 달성 시 ${fw(futY)} · 목표 대비 <span class="${futY>=yg?'hg':'hy'}">${(futY/yg*100).toFixed(0)}%</span>
+        <br>월 평균 <span class="ha">${fw(futY/12)}</span>
+        ${futY<yg?` · 부족분 <span class="hy">${fw(yg-futY)}/년</span>`:'<br>→ <span class="hg">목표 초과 달성 예정!</span>'}
+        </div>
+      </div>`;
+    }
+  }
+  el.innerHTML=h;
+}
+
+/* ── [추가 #12] 데이터 백업/복원 ── */
+function exportData(){
+  const data={ stocks, goals, exportedAt: new Date().toISOString() };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`dividend_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast('📤 데이터 내보내기 완료!');
+}
+function importData(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.stocks) throw new Error('올바른 백업 파일이 아닙니다.');
+      if(!confirm(`${data.stocks.length}개 종목 데이터를 불러올까요?\n현재 데이터는 덮어씌워집니다.`)) return;
+      stocks=data.stocks;
+      stocks.forEach(s=>{ if(!s.freq)s.freq=1; if(!s.divMonths)s.divMonths=[]; });
+      if(data.goals) goals=data.goals;
+      save(); saveG(); updDash(); updGoalInputs();
+      toast('📥 데이터 불러오기 완료!');
+    }catch(err){
+      toast('❌ 파일 오류: '+err.message, 'var(--re)');
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+function resetData(){
+  if(!confirm('⚠️ 전체 초기화할까요?\n모든 데이터가 삭제됩니다.')) return;
+  if(!confirm('정말 초기화하시겠습니까? 복구가 불가능합니다.')) return;
+  localStorage.removeItem('dv13_s');
+  localStorage.removeItem('dv13_g');
+  localStorage.removeItem('dv13_b');
+  stocks=JSON.parse(JSON.stringify(DEFAULT));
+  goals={monthly:1000000,yearly:12000000};
+  budget=0;
+  document.getElementById('bud').value='';
+  updDash(); updGoalInputs();
+  toast('🗑️ 초기화 완료');
+}
+
+/* ── 초기화 ── */
+load();
+renderAddMonthPicker();
+updDash();
+
+// 키보드 올라올 때 포커스된 입력 필드가 가려지지 않도록 스크롤
+document.addEventListener('focusin', e=>{
+  const el=e.target;
+  if(el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA'){
+    setTimeout(()=>{
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 300);
+  }
+});
+
+// Visual Viewport API: 키보드 높이만큼 body 여백 동적 조정 (iOS 지원)
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', ()=>{
+    const kbHeight=window.innerHeight - window.visualViewport.height;
+    document.body.style.paddingBottom=`calc(${Math.max(kbHeight,0)}px + 120px + env(safe-area-inset-bottom))`;
+  });
+}
+</script>
+</body>
+</html>
