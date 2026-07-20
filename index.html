@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배당장부 — 배당투자 복리 시뮬레이터</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#12213A">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="배당장부">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#12213A;
+    --ink-2:#1B2E4D;
+    --paper:#EDE6D6;
+    --paper-dim:#C9C2AE;
+    --gold:#C9A961;
+    --gold-bright:#E4C989;
+    --green:#3E6B4F;
+    --red:#B25C4A;
+    --line: rgba(237,230,214,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Pretendard',-apple-system,sans-serif;
+    line-height:1.5;
+    padding-bottom:80px;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:28px 18px 60px;}
+
+  /* header — passbook stamp motif */
+  header{
+    display:flex;align-items:center;gap:16px;
+    padding-bottom:22px;margin-bottom:26px;
+    border-bottom:1px solid var(--line);
+  }
+  .stamp{
+    width:56px;height:56px;border-radius:50%;
+    border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Noto Serif KR',serif;font-weight:700;color:var(--gold);
+    font-size:22px;flex-shrink:0;
+  }
+  h1{
+    font-family:'Noto Serif KR',serif;font-weight:700;
+    font-size:1.5rem;margin:0;letter-spacing:-0.01em;
+  }
+  .sub{color:var(--paper-dim);font-size:0.85rem;margin-top:3px;}
+
+  section{margin-bottom:34px;}
+  .section-title{
+    font-family:'Noto Serif KR',serif;font-weight:600;font-size:1.05rem;
+    color:var(--gold-bright);
+    margin:0 0 14px;
+    display:flex;align-items:baseline;gap:8px;
+  }
+  .section-title .no{font-size:0.75rem;color:var(--paper-dim);font-family:'Pretendard';}
+
+  /* stock ledger rows */
+  .ledger{border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+  .stock-row{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:10px;
+    padding:16px;
+    border-bottom:1px solid var(--line);
+    background:var(--ink-2);
+  }
+  .stock-row:last-child{border-bottom:none;}
+  .stock-row .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stock-row .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  label{display:block;font-size:0.72rem;color:var(--paper-dim);margin-bottom:4px;letter-spacing:.02em;}
+  input, select{
+    width:100%;background:var(--ink);border:1px solid var(--line);
+    color:var(--paper);padding:9px 10px;border-radius:2px;font-size:0.9rem;
+    font-family:'Pretendard';
+  }
+  input:focus, select:focus{outline:none;border-color:var(--gold);}
+  .row-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .stock-name-input{font-family:'Noto Serif KR',serif;font-weight:600;font-size:1rem;}
+  .del-btn{
+    background:none;border:1px solid var(--red);color:var(--red);
+    border-radius:2px;padding:6px 10px;font-size:0.75rem;cursor:pointer;flex-shrink:0;
+  }
+  .del-btn:hover{background:var(--red);color:var(--ink);}
+
+  .add-btn, .action-btn{
+    background:var(--gold);color:var(--ink);border:none;
+    padding:11px 18px;border-radius:2px;font-weight:600;font-size:0.88rem;
+    cursor:pointer;font-family:'Pretendard';
+  }
+  .add-btn:hover, .action-btn:hover{background:var(--gold-bright);}
+  .ghost-btn{
+    background:none;border:1px solid var(--gold);color:var(--gold-bright);
+    padding:10px 16px;border-radius:2px;font-size:0.85rem;cursor:pointer;
+  }
+  .ghost-btn:hover{background:rgba(201,169,97,0.1);}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+
+  /* settings */
+  .settings-box{
+    border:1px solid var(--line);padding:16px;border-radius:2px;
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;background:var(--ink-2);
+  }
+  .toggle-line{display:flex;align-items:center;gap:8px;grid-column:1/-1;}
+  .toggle-line input{width:auto;}
+
+  /* results */
+  .years-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .year-card{
+    border:1px solid var(--gold);border-radius:2px;padding:16px 14px;
+    background:linear-gradient(180deg, rgba(201,169,97,0.08), transparent);
+  }
+  .year-card .yr{font-family:'Noto Serif KR',serif;font-size:1.6rem;color:var(--gold-bright);font-weight:700;}
+  .year-card .yr span{font-size:0.85rem;color:var(--paper-dim);font-weight:400;}
+  .year-card dl{margin:12px 0 0;}
+  .year-card dt{font-size:0.7rem;color:var(--paper-dim);margin-top:8px;}
+  .year-card dd{margin:2px 0 0;font-size:1rem;font-weight:600;font-family:'Noto Serif KR',serif;}
+  .year-card dd.small{font-size:0.85rem;font-weight:500;font-family:'Pretendard';color:var(--paper-dim);}
+
+  canvas{max-height:260px;}
+  .chart-box{border:1px solid var(--line);padding:16px;border-radius:2px;background:var(--ink-2);}
+
+  /* sync */
+  .sync-box{border:1px solid var(--line);padding:16px;border-radius:2px;background:var(--ink-2);}
+  .sync-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .status-msg{font-size:0.82rem;margin-top:10px;color:var(--paper-dim);min-height:1.2em;}
+  .status-msg.ok{color:var(--green);}
+  .status-msg.err{color:var(--red);}
+  .note{font-size:0.76rem;color:var(--paper-dim);margin-top:8px;line-height:1.6;}
+
+  @media(min-width:640px){
+    .stock-row{grid-template-columns: 1.4fr 2fr;align-items:start;}
+  }
+  @media(max-width:600px){
+    .years-grid{grid-template-columns:1fr;}
+    .sync-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="stamp">配</div>
+    <div style="flex:1;">
+      <h1>배당장부</h1>
+      <div class="sub">보유 배당주로 5·10·20년 뒤 분배금을 미리 확인하는 개인 장부</div>
+    </div>
+    <button id="installBtn" class="ghost-btn" style="display:none;white-space:nowrap;" onclick="installApp()">앱으로 설치</button>
+  </header>
+
+  <section>
+    <div class="section-title"><span class="no">01</span> 보유 종목</div>
+    <div class="ledger" id="stockLedger"></div>
+    <div class="btn-row">
+      <button class="add-btn" onclick="addStock()">+ 종목 추가</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title"><span class="no">02</span> 시뮬레이션 설정</div>
+    <div class="settings-box">
+      <div>
+        <label>총 시뮬레이션 기간 (년)</label>
+        <input type="number" id="simYears" value="20" min="1" max="50">
+      </div>
+      <div>
+        <label>확인 시점 (쉼표로 구분, 년)</label>
+        <input type="text" id="checkpoints" value="5,10,20">
+      </div>
+      <div class="toggle-line">
+        <input type="checkbox" id="dripToggle" checked>
+        <label style="margin:0;">받은 분배금을 자동 재투자 (DRIP)</label>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title"><span class="no">03</span> 시뮬레이션 결과</div>
+    <div class="years-grid" id="resultsGrid"></div>
+  </section>
+
+  <section>
+    <div class="section-title"><span class="no">04</span> 성장 그래프</div>
+    <div class="chart-box"><canvas id="growthChart"></canvas></div>
+  </section>
+
+  <section>
+    <div class="section-title"><span class="no">05</span> 기기 간 동기화 (GitHub)</div>
+    <div class="sync-box">
+      <div class="sync-grid">
+        <div><label>GitHub 사용자명</label><input id="ghOwner" placeholder="예: mykiho"></div>
+        <div><label>저장소 이름</label><input id="ghRepo" placeholder="예: dividend-data"></div>
+        <div><label>파일 경로</label><input id="ghPath" value="data.json"></div>
+        <div><label>Personal Access Token</label><input id="ghToken" type="password" placeholder="repo 권한 토큰"></div>
+      </div>
+      <div class="btn-row">
+        <button class="action-btn" onclick="pushToGithub()">GitHub에 저장 ↑</button>
+        <button class="ghost-btn" onclick="pullFromGithub()">GitHub에서 불러오기 ↓</button>
+        <button class="ghost-btn" onclick="exportJSON()">JSON 내보내기</button>
+        <button class="ghost-btn" onclick="document.getElementById('importFile').click()">JSON 가져오기</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+      </div>
+      <div class="status-msg" id="syncStatus"></div>
+      <div class="note">
+        토큰은 이 브라우저의 localStorage에만 저장되며 GitHub 저장소에는 올라가지 않습니다.
+        토큰 발급: GitHub → Settings → Developer settings → Personal access tokens (repo 쓰기 권한 필요).
+        같은 저장소·파일 경로로 PC와 안드로이드에서 각각 로그인하면 "저장 ↑" / "불러오기 ↓" 로 데이터가 맞춰집니다.
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const LS_KEY = 'dividend_ledger_data_v1';
+const LS_GH  = 'dividend_ledger_gh_v1';
+let chart = null;
+
+function uid(){ return 'S' + Math.random().toString(36).slice(2,9); }
+
+function defaultStock(){
+  return {
+    id: uid(), name: '', shares: 0, price: 0,
+    divPerShare: 0, divFreq: 'monthly', // monthly | quarterly | annual
+    divGrowth: 0, priceGrowth: 0, monthlyBuy: 0
+  };
+}
+
+function seedStocks(){
+  return [
+    { id: uid(), name:'TIGER 은행고배당플러스TOP10', shares:48, price:27185,
+      divPerShare:87, divFreq:'monthly', divGrowth:0, priceGrowth:0, monthlyBuy:68253 },
+    { id: uid(), name:'KODEX 한국부동산리츠인프라', shares:282, price:4310,
+      divPerShare:29, divFreq:'monthly', divGrowth:0, priceGrowth:0, monthlyBuy:68253 },
+    { id: uid(), name:'ACE 미국하이일드액티브(H)', shares:132, price:9510,
+      divPerShare:55, divFreq:'monthly', divGrowth:0, priceGrowth:0, monthlyBuy:68253 },
+    { id: uid(), name:'TIGER 미국배당다우존스타겟커버드콜2호', shares:63, price:11475,
+      divPerShare:97, divFreq:'monthly', divGrowth:0, priceGrowth:0, monthlyBuy:22751 }
+  ];
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { stocks: seedStocks(), simYears: 20, checkpoints: '5,10,20', drip: true };
+}
+
+let state = loadState();
+if(!state.stocks || state.stocks.length===0) state.stocks=[defaultStock()];
+
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+}
+
+function renderLedger(){
+  const el = document.getElementById('stockLedger');
+  el.innerHTML = '';
+  state.stocks.forEach(s=>{
+    const row = document.createElement('div');
+    row.className = 'stock-row';
+    row.innerHTML = `
+      <div>
+        <div class="row-top">
+          <input class="stock-name-input" placeholder="종목명" value="${escAttr(s.name)}" oninput="updateStock('${s.id}','name',this.value)">
+          <button class="del-btn" onclick="removeStock('${s.id}')">삭제</button>
+        </div>
+      </div>
+      <div class="grid3">
+        <div><label>보유 주수</label><input type="number" value="${s.shares}" oninput="updateStock('${s.id}','shares',this.value)"></div>
+        <div><label>현재 주가(원)</label><input type="number" value="${s.price}" oninput="updateStock('${s.id}','price',this.value)"></div>
+        <div><label>월 추가매입액(원)</label><input type="number" value="${s.monthlyBuy}" oninput="updateStock('${s.id}','monthlyBuy',this.value)"></div>
+      </div>
+      <div class="grid3" style="margin-top:2px;">
+        <div><label>주당 배당금(원)</label><input type="number" value="${s.divPerShare}" oninput="updateStock('${s.id}','divPerShare',this.value)"></div>
+        <div>
+          <label>배당 주기</label>
+          <select onchange="updateStock('${s.id}','divFreq',this.value)">
+            <option value="monthly" ${s.divFreq==='monthly'?'selected':''}>월배당</option>
+            <option value="quarterly" ${s.divFreq==='quarterly'?'selected':''}>분기배당</option>
+            <option value="annual" ${s.divFreq==='annual'?'selected':''}>연배당</option>
+          </select>
+        </div>
+        <div><label>배당 연성장률(%)</label><input type="number" step="0.1" value="${s.divGrowth}" oninput="updateStock('${s.id}','divGrowth',this.value)"></div>
+      </div>
+      <div class="grid2" style="margin-top:2px;max-width:50%;">
+        <div><label>주가 연성장률(%)</label><input type="number" step="0.1" value="${s.priceGrowth}" oninput="updateStock('${s.id}','priceGrowth',this.value)"></div>
+      </div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+function escAttr(v){ return (v||'').replace(/"/g,'&quot;'); }
+
+function updateStock(id, field, value){
+  const s = state.stocks.find(x=>x.id===id);
+  if(!s) return;
+  if(['shares','price','divPerShare','divGrowth','priceGrowth','monthlyBuy'].includes(field)){
+    s[field] = parseFloat(value) || 0;
+  } else {
+    s[field] = value;
+  }
+  saveState();
+  runSimulation();
+}
+
+function addStock(){
+  state.stocks.push(defaultStock());
+  saveState();
+  renderLedger();
+  runSimulation();
+}
+
+function removeStock(id){
+  state.stocks = state.stocks.filter(x=>x.id!==id);
+  if(state.stocks.length===0) state.stocks.push(defaultStock());
+  saveState();
+  renderLedger();
+  runSimulation();
+}
+
+// ---- simulation ----
+function monthlyDivRate(freq){
+  // returns fraction of annual dividend paid out per month, as a multiplier applied differently
+  return freq; // handled in sim directly
+}
+
+function simulate(){
+  const years = parseFloat(document.getElementById('simYears').value) || 20;
+  const drip = document.getElementById('dripToggle').checked;
+  const months = Math.round(years * 12);
+
+  // per-stock working state
+  const working = state.stocks.map(s => ({
+    shares: s.shares,
+    price: s.price,
+    divPerShareAnnualBase: freqToAnnual(s.divPerShare, s.divFreq),
+    divGrowth: s.divGrowth/100,
+    priceGrowth: s.priceGrowth/100,
+    monthlyBuy: s.monthlyBuy,
+    name: s.name || '종목'
+  }));
+
+  const monthlyPriceMult = working.map(w => Math.pow(1+w.priceGrowth, 1/12));
+  const monthlyDivMult = working.map(w => Math.pow(1+w.divGrowth, 1/12));
+
+  const history = []; // {month, totalValue, monthlyDividend, principalInvested}
+  let principalInvested = working.reduce((sum,w)=> sum + w.shares*w.price, 0);
+
+  for(let m=1; m<=months; m++){
+    let totalDividendThisMonth = 0;
+
+    working.forEach((w, idx)=>{
+      // dividend earned this month = (annual div per share / 12) * shares
+      const divThisMonth = (w.divPerShareAnnualBase/12) * w.shares;
+      totalDividendThisMonth += divThisMonth;
+
+      // buy new shares with monthly contribution
+      if(w.price > 0 && w.monthlyBuy > 0){
+        w.shares += w.monthlyBuy / w.price;
+        principalInvested += w.monthlyBuy;
+      }
+      // DRIP: reinvest dividend into more shares
+      if(drip && w.price > 0){
+        w.shares += divThisMonth / w.price;
+      }
+      // grow price and dividend base for next month
+      w.price *= monthlyPriceMult[idx];
+      w.divPerShareAnnualBase *= monthlyDivMult[idx];
+    });
+
+    const totalValue = working.reduce((sum,w)=> sum + w.shares*w.price, 0);
+    history.push({
+      month: m,
+      totalValue,
+      monthlyDividend: totalDividendThisMonth,
+      principalInvested
+    });
+  }
+
+  return { history, working, principalInvested };
+}
+
+function freqToAnnual(perShare, freq){
+  if(freq==='monthly') return perShare*12;
+  if(freq==='quarterly') return perShare*4;
+  return perShare; // annual
+}
+
+function fmt(n){
+  return Math.round(n).toLocaleString('ko-KR') + '원';
+}
+
+function runSimulation(){
+  const { history, principalInvested } = simulate();
+  const cpRaw = document.getElementById('checkpoints').value;
+  const checkpoints = cpRaw.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n) && n>0);
+
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = '';
+
+  checkpoints.forEach(yr=>{
+    const monthIdx = Math.min(Math.round(yr*12), history.length) - 1;
+    if(monthIdx < 0) return;
+    const pt = history[monthIdx];
+    const annualDiv = pt.monthlyDividend * 12;
+    const gain = pt.totalValue - pt.principalInvested;
+    const gainPct = pt.principalInvested>0 ? (gain/pt.principalInvested*100) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'year-card';
+    card.innerHTML = `
+      <div class="yr">${yr}<span>년 뒤</span></div>
+      <dl>
+        <dt>예상 평가금액</dt>
+        <dd>${fmt(pt.totalValue)}</dd>
+        <dt>월 예상 분배금</dt>
+        <dd>${fmt(pt.monthlyDividend)}</dd>
+        <dt>연 예상 분배금</dt>
+        <dd class="small">${fmt(annualDiv)}</dd>
+        <dt>누적 투자원금 / 평가손익</dt>
+        <dd class="small">${fmt(pt.principalInvested)} / ${gain>=0?'+':''}${fmt(gain)} (${gainPct.toFixed(1)}%)</dd>
+      </dl>
+    `;
+    grid.appendChild(card);
+  });
+
+  renderChart(history);
+  saveSettingsToState();
+}
+
+function saveSettingsToState(){
+  state.simYears = parseFloat(document.getElementById('simYears').value) || 20;
+  state.checkpoints = document.getElementById('checkpoints').value;
+  state.drip = document.getElementById('dripToggle').checked;
+  saveState();
+}
+
+function renderChart(history){
+  const yearly = history.filter((h,i)=> (i+1)%12===0);
+  const labels = yearly.map((h,i)=> (i+1)+'년');
+  const values = yearly.map(h=> Math.round(h.totalValue));
+  const dividends = yearly.map(h=> Math.round(h.monthlyDividend*12));
+
+  const ctx = document.getElementById('growthChart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'평가금액',
+          data: values,
+          borderColor:'#C9A961',
+          backgroundColor:'rgba(201,169,97,0.12)',
+          fill:true, tension:0.25, yAxisID:'y'
+        },
+        {
+          label:'연 분배금',
+          data: dividends,
+          borderColor:'#3E6B4F',
+          backgroundColor:'transparent',
+          fill:false, tension:0.25, yAxisID:'y1'
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{labels:{color:'#EDE6D6', font:{family:'Pretendard'}}}
+      },
+      scales:{
+        x:{ ticks:{color:'#C9C2AE'}, grid:{color:'rgba(237,230,214,0.06)'} },
+        y:{ position:'left', ticks:{color:'#C9C2AE', callback:v=> (v/10000).toLocaleString()+'만'}, grid:{color:'rgba(237,230,214,0.06)'} },
+        y1:{ position:'right', ticks:{color:'#3E6B4F', callback:v=> (v/10000).toLocaleString()+'만'}, grid:{drawOnChartArea:false} }
+      }
+    }
+  });
+}
+
+// ---- export/import ----
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'dividend-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.stocks) throw new Error('형식이 올바르지 않습니다');
+      state = data;
+      saveState();
+      renderAll();
+      setStatus('JSON 파일을 불러왔습니다.', 'ok');
+    }catch(err){
+      setStatus('가져오기 실패: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ---- GitHub sync ----
+function loadGhConfig(){
+  try{
+    const raw = localStorage.getItem(LS_GH);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {};
+}
+function saveGhConfig(){
+  const cfg = {
+    owner: document.getElementById('ghOwner').value,
+    repo: document.getElementById('ghRepo').value,
+    path: document.getElementById('ghPath').value,
+    token: document.getElementById('ghToken').value
+  };
+  localStorage.setItem(LS_GH, JSON.stringify(cfg));
+  return cfg;
+}
+function setStatus(msg, cls){
+  const el = document.getElementById('syncStatus');
+  el.textContent = msg;
+  el.className = 'status-msg' + (cls ? ' '+cls : '');
+}
+
+async function pushToGithub(){
+  const cfg = saveGhConfig();
+  if(!cfg.owner || !cfg.repo || !cfg.token){
+    setStatus('사용자명, 저장소, 토큰을 모두 입력해주세요.', 'err');
+    return;
+  }
+  setStatus('저장 중...');
+  try{
+    const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`;
+    let sha = null;
+    const getRes = await fetch(apiUrl, {
+      headers:{ 'Authorization':'Bearer '+cfg.token, 'Accept':'application/vnd.github+json' }
+    });
+    if(getRes.ok){
+      const getData = await getRes.json();
+      sha = getData.sha;
+    }
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2))));
+    const putRes = await fetch(apiUrl, {
+      method:'PUT',
+      headers:{ 'Authorization':'Bearer '+cfg.token, 'Accept':'application/vnd.github+json' },
+      body: JSON.stringify({
+        message: '배당장부 데이터 업데이트 ' + new Date().toISOString(),
+        content,
+        sha: sha || undefined
+      })
+    });
+    if(!putRes.ok){
+      const err = await putRes.json().catch(()=>({}));
+      throw new Error(err.message || putRes.statusText);
+    }
+    setStatus('GitHub에 저장되었습니다.', 'ok');
+  }catch(err){
+    setStatus('저장 실패: ' + err.message, 'err');
+  }
+}
+
+async function pullFromGithub(){
+  const cfg = saveGhConfig();
+  if(!cfg.owner || !cfg.repo || !cfg.token){
+    setStatus('사용자명, 저장소, 토큰을 모두 입력해주세요.', 'err');
+    return;
+  }
+  setStatus('불러오는 중...');
+  try{
+    const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`;
+    const res = await fetch(apiUrl, {
+      headers:{ 'Authorization':'Bearer '+cfg.token, 'Accept':'application/vnd.github+json' }
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.message || res.statusText);
+    }
+    const data = await res.json();
+    const decoded = decodeURIComponent(escape(atob(data.content)));
+    const parsed = JSON.parse(decoded);
+    if(!parsed.stocks) throw new Error('파일 형식이 올바르지 않습니다');
+    state = parsed;
+    saveState();
+    renderAll();
+    setStatus('GitHub에서 불러왔습니다.', 'ok');
+  }catch(err){
+    setStatus('불러오기 실패: ' + err.message, 'err');
+  }
+}
+
+function renderAll(){
+  document.getElementById('simYears').value = state.simYears || 20;
+  document.getElementById('checkpoints').value = state.checkpoints || '5,10,20';
+  document.getElementById('dripToggle').checked = state.drip !== false;
+  renderLedger();
+  runSimulation();
+}
+
+// init
+window.addEventListener('DOMContentLoaded', ()=>{
+  const gh = loadGhConfig();
+  if(gh.owner) document.getElementById('ghOwner').value = gh.owner;
+  if(gh.repo) document.getElementById('ghRepo').value = gh.repo;
+  if(gh.path) document.getElementById('ghPath').value = gh.path;
+  if(gh.token) document.getElementById('ghToken').value = gh.token;
+
+  document.getElementById('simYears').addEventListener('change', runSimulation);
+  document.getElementById('checkpoints').addEventListener('change', runSimulation);
+  document.getElementById('dripToggle').addEventListener('change', runSimulation);
+
+  renderAll();
+});
+
+// ---- PWA: service worker + install prompt ----
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW 등록 실패', err));
+  });
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'inline-block';
+});
+
+function installApp(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.finally(()=>{
+    deferredInstallPrompt = null;
+    document.getElementById('installBtn').style.display = 'none';
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'none';
+});
+</script>
+</body>
+</html>
